@@ -66,3 +66,17 @@ func main() {
 	}
 ```
 
+
+```go
+	// get product details
+	api.GetProductSingle("2231")
+	data := api.Execute()
+```
+
+```go
+	// confirm receipt of order (remove from pending)
+	api.OrderConfirm("100082")
+	data := api.Execute()
+```
+
+You will probably want to create a config file to store the authentication data in, since the password gets rotated a good bit and you'll need to pop in and update it occassionally. The Go Text Template library is very useful for formatting the CV3 data for a 3rd party system or vice versus. I often find myself grabbing data from CV3, pushing it through a Go Template and then submitting it to another API.
