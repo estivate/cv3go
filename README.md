@@ -10,7 +10,7 @@ being done.
 
 Run `go get` to download via git.
 
-	go get github.com/ericchiang/pup
+	go get github.com/estivate/cv3go
 
 ## Quick start
 
