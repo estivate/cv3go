@@ -14,6 +14,7 @@ package cv3go
 
 import (
 	"bytes"
+	//"crypto/tls"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -151,7 +152,7 @@ func (self *Api) GetOrdersNew() {
 }
 
 func (self *Api) GetOrdersRange(o string, p string) {
-	self.request = "<reqOrders><reqOrderRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
+	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
 func (self *Api) OrderConfirm(o string) {
@@ -210,11 +211,18 @@ func (self *Api) Execute() (n []byte) {
 	xmlstring := string(xmlbytes)
 	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
 	if self.Debug == true {
+		fmt.Printf("Printing request string: ")
 		fmt.Printf(xmlstring)
 	}
 	encodedString := toBase64(xmlstring)
 	xmlstring = xml.Header + fmt.Sprintf(soapEnvelope, encodedString)
 	if err == nil {
+		/*
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{Transport: tr}
+		*/
 		client := &http.Client{}
 		body := nopCloser{bytes.NewBufferString(xmlstring)}
 		if err == nil {

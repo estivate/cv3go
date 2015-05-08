@@ -13,6 +13,7 @@ type Product struct {
 	InventoryStatus          string       `xml:"InventoryControl>Status"`
 	InventoryOnHand          string       `xml:"InventoryControl>Inventory"`
 	Price                    string       `xml:"Retail>Price>StandardPrice"`
+	OutOfStock               string       `xml:"InventoryControl>OutOfStockPoint"`
 	InventoryBackorderedDate string       `xml:"InventoryControl>InventoryBackorderedDate"`
 	SubProducts              []SubProduct `xml:"SubProducts>SubProduct"`
 }
