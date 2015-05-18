@@ -75,6 +75,7 @@ type nopCloser struct {
 	io.Reader
 }
 
+//Convert a string to Base64 encoded string
 func toBase64(data string) string {
 	var buf bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
@@ -94,33 +95,43 @@ type Api struct {
 	orderStatus string
 }
 
+//Generate a new API
 func NewApi() *Api {
 	api := new(Api)
 	return api
 }
 
+//Set the credentials of the API
 func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
 	self.pass = password
 	self.serviceID = serviceID
 }
 
+//Set the request to reqCustomerInformation
 func (self *Api) GetCustomerGroups() {
 	self.request = "<reqCustomerInformation members_only=\"false\"/>"
 }
 
+//Set the request to reqProducts->reqProductSingle
+//containing string(o) as the data
 func (self *Api) GetProductSingle(o string) {
 	self.request = "<reqProducts><reqProductSingle>" + o + "</reqProductSingle></reqProducts>"
 }
 
+//Set the request to reqProducts->reqProductSKU
+//containing string(o) as the data
 func (self *Api) GetProductSKU(o string) {
 	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
 }
 
+//Set the request to reqProducts->reqProductRange
+//using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
 	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
 }
 
+//Set the request to reqProductIDs
 func (self *Api) GetProductIds() ProductIDs {
 	self.request = "<reqProductIDs />"
 	data := self.Execute()
@@ -132,10 +143,12 @@ func (self *Api) GetProductIds() ProductIDs {
 	return p
 }
 
+//Set the request to reqProductSKU
 func (self *Api) GetProductSkus() {
 	self.request = "<reqProductSKU />"
 }
 
+//Set the request to reqCatalogRequests->reqNew
 func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	self.request = "<reqCatalogRequests><reqNew/></reqCatalogRequests>"
 	catalogs := CatalogRequests{}
@@ -147,30 +160,39 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
+//Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
 }
 
+//Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
 	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
+//Set request to orderConfirm->orderConf
+//using string o as contents
 func (self *Api) OrderConfirm(o string) {
 	self.confirm = "  <orderConfirm><orderConf>" + o + "</orderConf></orderConfirm>"
 }
 
+//Set request to status->[orderID(o),status(p),tracking(q)]
 func (self *Api) UpdateOrderStatus(o string, p string, q string) {
 	self.orderStatus = "  <status><orderID>" + o + "</orderID><status>" + p + "</status><tracking>" + q + "</tracking></status>"
 }
 
+//Set request to catalogRequestConfirm->CatalogRequestID(o)
 func (self *Api) CatalogRequestConfirm(o string) {
 	self.confirm = "  <catalogRequestConfirm><CatalogRequestID>" + o + "</CatalogRequestID></catalogRequestConfirm>"
 }
 
+//Set the request to an inventory update call
+//using o as the data
 func (self *Api) PushInventory(o string) {
 	self.product = o
 }
 
+//Convert an XML response containing order to an Orders object
 func (self *Api) UnmarshalOrders(n []byte) Orders {
 	orders := Orders{}
 	err := xml.Unmarshal(n, &orders)
@@ -180,6 +202,7 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 	return orders
 }
 
+//Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	products := Products{}
 	err := xml.Unmarshal(n, &products)
@@ -189,6 +212,7 @@ func (self *Api) UnmarshalInventory(n []byte) Products {
 	return products
 }
 
+//Convert an XML response containing a single product to a Product object
 func (self *Api) UnmarshalProduct(n []byte) Product {
 	product := Product{}
 	err := xml.Unmarshal(n, &product)
@@ -198,6 +222,10 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 	return product
 }
 
+//Send the request, return the response
+//Note, one of the above requests must
+//be set up first, and the credentials must be
+//set up for this to work
 func (self *Api) Execute() (n []byte) {
 	//  var pre_n []byte
 	w := Credentials{User: self.user, Password: self.pass, ServiceID: self.serviceID}
