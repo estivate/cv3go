@@ -59,6 +59,9 @@ type Order struct {
 	CCNum               string        `xml:"billing>CCInfo>CCNum"`
 	CCExpM              string        `xml:"billing>CCInfo>CCExpM"`
 	CCExpY              string        `xml:"billing>CCInfo>CCExpY"`
+	AuthCode            string        `xml:"billing>CCInfo>authCode"`
+	AuthAmount          string        `xml:"billing>CCInfo>authAmount"`
+	RequestToken        string        `xml:"billing>CCInfo>token"`
 	PurchaseOrder       string        `xml:"purchaseOrder"`
 	PayPalBuyer         string        `xml:"payPalInfo>Buyer"`
 	PayPalAmount        string        `xml:"payPalInfo>Amount"`

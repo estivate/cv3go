@@ -10,11 +10,12 @@ Usage:
 
 */
 
+//Package used to connect to the CV3 API
 package cv3go
 
 import (
 	"bytes"
-	//"crypto/tls"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
@@ -245,13 +246,12 @@ func (self *Api) Execute() (n []byte) {
 	encodedString := toBase64(xmlstring)
 	xmlstring = xml.Header + fmt.Sprintf(soapEnvelope, encodedString)
 	if err == nil {
-		/*
-			tr := &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}
-			client := &http.Client{Transport: tr}
-		*/
-		client := &http.Client{}
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		//client := &http.Client{}
 		body := nopCloser{bytes.NewBufferString(xmlstring)}
 		if err == nil {
 			req, err := http.NewRequest("POST", cv3_endpoint, body)
