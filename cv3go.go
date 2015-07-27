@@ -22,6 +22,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -264,23 +265,27 @@ func (self *Api) Execute() (n []byte) {
 				resp, err := client.Do(req)
 				if err != nil {
 					fmt.Printf("Request error: %v", err)
+					os.Exit(1)
 					return
 				}
 				res, err := ioutil.ReadAll(resp.Body)
 				resp.Body.Close()
 				if err != nil {
 					fmt.Printf("Read Response Error: %v", err)
+					os.Exit(1)
 					return
 				}
 				y := response{}
 				err = xml.Unmarshal([]byte(res), &y)
 				if err != nil {
 					fmt.Printf("Unmarshal error: %v", err)
+					os.Exit(1)
 					return
 				}
 				n, err = base64.StdEncoding.DecodeString(y.Data)
 				if err != nil {
 					fmt.Printf("Decoding error: %v", err)
+					os.Exit(1)
 					return
 				}
 			}
