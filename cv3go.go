@@ -94,6 +94,7 @@ type Api struct {
 	request     string
 	confirm     string
 	product     string
+	prodIgnore  bool
 	orderStatus string
 }
 
@@ -108,6 +109,7 @@ func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
 	self.pass = password
 	self.serviceID = serviceID
+	self.prodIgnore = false
 }
 
 //Set the request to reqCustomerInformation
@@ -123,8 +125,27 @@ func (self *Api) GetProductSingle(o string) {
 
 //Set the request to reqProducts->reqProductSKU
 //containing string(o) as the data
-func (self *Api) GetProductSKU(o string) {
-	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+func (self *Api) GetProductSKU(o string, t bool) {
+	if t {
+		self.request = "<reqProducts export_sku_only=\"true\"><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+	} else {
+		self.request = "<reqProducts export_sku_only=\"false\"><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+	}
+}
+
+func (self *Api) GetProductSKUs(o []string, t bool) {
+	req := "<reqProducts export_sku_only=\""
+	if t {
+		req += "true"
+	} else {
+		req += "false"
+	}
+	req += "\">"
+	for i := 0; i < len(o); i++ {
+		req += "<reqProductSKU>" + o[i] + "</reqProductSKU>"
+	}
+	req += "</reqProducts>"
+	self.request = req
 }
 
 //Set the request to reqProducts->reqProductRange
@@ -190,8 +211,12 @@ func (self *Api) CatalogRequestConfirm(o string) {
 
 //Set the request to an inventory update call
 //using o as the data
-func (self *Api) PushInventory(o string) {
+func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
+	fmt.Printf("Should we ignore inventory? %+v\n", t)
+	if t {
+		self.prodIgnore = true
+	}
 }
 
 //Convert an XML response containing order to an Orders object
@@ -238,8 +263,14 @@ func (self *Api) Execute() (n []byte) {
 	t := RequestBody{Auth: w, Requests: []Request{x}}
 	v := CV3Data{CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
 	xmlbytes, err := xml.MarshalIndent(v, "  ", "    ")
+	if err != nil {
+		fmt.Println(err)
+	}
 	xmlstring := string(xmlbytes)
 	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	if self.prodIgnore {
+		xmlstring = strings.Replace(xmlstring, "<products>", `<products ignore_new_products="true">`, -1)
+	}
 	if self.Debug == true {
 		fmt.Printf("Printing request string: ")
 		fmt.Printf(xmlstring)
@@ -293,6 +324,11 @@ func (self *Api) Execute() (n []byte) {
 	}
 	if self.Debug == true {
 		fmt.Printf(string(n))
+	}
+	if strings.Contains(string(n), "<error>") {
+		start := strings.Index(string(n), "<error>") + 7
+		end := strings.Index(string(n), "</error>")
+		fmt.Println("\nAn error occured: " + string(n[start:end]))
 	}
 	return
 }

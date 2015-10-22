@@ -7,15 +7,16 @@ type Products struct {
 type Product struct {
 	Inactive                 string       `xml:"inactive,attr"`
 	Sku                      string       `xml:"SKU"`
-	ProdId                   string       `xml:"ProdID"`
-	Name                     string       `xml:"Name"`
-	UrlName                  string       `xml:"URLName"`
-	InventoryStatus          string       `xml:"InventoryControl>Status"`
-	InventoryOnHand          string       `xml:"InventoryControl>Inventory"`
-	Price                    string       `xml:"Retail>Price>StandardPrice"`
-	OutOfStock               string       `xml:"InventoryControl>OutOfStockPoint"`
-	InventoryBackorderedDate string       `xml:"InventoryControl>InventoryBackorderedDate"`
-	SubProducts              []SubProduct `xml:"SubProducts>SubProduct"`
+	ProdId                   string       `xml:"ProdID,omitempty"`
+	Name                     string       `xml:"Name,omitempty"`
+	UrlName                  string       `xml:"URLName,omitempty"`
+	InventoryStatus          string       `xml:"InventoryControl>Status,omitempty"`
+	InventoryOnHand          string       `xml:"InventoryControl>Inventory,omitempty"`
+	OnOrder                  string       `xml:"InventoryControl>OnOrder,omitempty"`
+	Price                    string       `xml:"Retail>Price>StandardPrice,omitempty"`
+	OutOfStock               string       `xml:"InventoryControl>OutOfStockPoint,omitempty"`
+	InventoryBackorderedDate string       `xml:"InventoryControl>InventoryBackorderedDate,omitempty"`
+	SubProducts              []SubProduct `xml:"SubProducts>SubProduct,omitempty"`
 }
 type SubProduct struct {
 	Inactive                 string `xml:"inactive,attr"`
@@ -24,6 +25,7 @@ type SubProduct struct {
 	Name                     string `xml:"Name"`
 	InventoryStatus          string `xml:"InventoryControl>Status"`
 	InventoryOnHand          string `xml:"InventoryControl>Inventory"`
+	OnOrder                  string `xml:"InventoryControl>OnOrder,omitempty"`
 	InventoryBackorderedDate string `xml:"InventoryControl>InventoryBackorderedDate"`
 }
 
