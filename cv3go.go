@@ -10,16 +10,19 @@ Usage:
 
 */
 
+//Package used to connect to the CV3 API
 package cv3go
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -74,6 +77,7 @@ type nopCloser struct {
 	io.Reader
 }
 
+//Convert a string to Base64 encoded string
 func toBase64(data string) string {
 	var buf bytes.Buffer
 	encoder := base64.NewEncoder(base64.StdEncoding, &buf)
@@ -90,36 +94,67 @@ type Api struct {
 	request     string
 	confirm     string
 	product     string
+	prodIgnore  bool
 	orderStatus string
 }
 
+//Generate a new API
 func NewApi() *Api {
 	api := new(Api)
 	return api
 }
 
+//Set the credentials of the API
 func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
 	self.pass = password
 	self.serviceID = serviceID
+	self.prodIgnore = false
 }
 
+//Set the request to reqCustomerInformation
 func (self *Api) GetCustomerGroups() {
 	self.request = "<reqCustomerInformation members_only=\"false\"/>"
 }
 
+//Set the request to reqProducts->reqProductSingle
+//containing string(o) as the data
 func (self *Api) GetProductSingle(o string) {
 	self.request = "<reqProducts><reqProductSingle>" + o + "</reqProductSingle></reqProducts>"
 }
 
-func (self *Api) GetProductSKU(o string) {
-	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+//Set the request to reqProducts->reqProductSKU
+//containing string(o) as the data
+func (self *Api) GetProductSKU(o string, t bool) {
+	if t {
+		self.request = "<reqProducts export_sku_only=\"true\"><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+	} else {
+		self.request = "<reqProducts export_sku_only=\"false\"><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+	}
 }
 
+func (self *Api) GetProductSKUs(o []string, t bool) {
+	req := "<reqProducts export_sku_only=\""
+	if t {
+		req += "true"
+	} else {
+		req += "false"
+	}
+	req += "\">"
+	for i := 0; i < len(o); i++ {
+		req += "<reqProductSKU>" + o[i] + "</reqProductSKU>"
+	}
+	req += "</reqProducts>"
+	self.request = req
+}
+
+//Set the request to reqProducts->reqProductRange
+//using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
 	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
 }
 
+//Set the request to reqProductIDs
 func (self *Api) GetProductIds() ProductIDs {
 	self.request = "<reqProductIDs />"
 	data := self.Execute()
@@ -131,10 +166,12 @@ func (self *Api) GetProductIds() ProductIDs {
 	return p
 }
 
+//Set the request to reqProductSKU
 func (self *Api) GetProductSkus() {
 	self.request = "<reqProductSKU />"
 }
 
+//Set the request to reqCatalogRequests->reqNew
 func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	self.request = "<reqCatalogRequests><reqNew/></reqCatalogRequests>"
 	catalogs := CatalogRequests{}
@@ -146,30 +183,43 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
+//Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
 }
 
+//Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
-	self.request = "<reqOrders><reqOrderRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
+	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
+//Set request to orderConfirm->orderConf
+//using string o as contents
 func (self *Api) OrderConfirm(o string) {
 	self.confirm = "  <orderConfirm><orderConf>" + o + "</orderConf></orderConfirm>"
 }
 
+//Set request to status->[orderID(o),status(p),tracking(q)]
 func (self *Api) UpdateOrderStatus(o string, p string, q string) {
 	self.orderStatus = "  <status><orderID>" + o + "</orderID><status>" + p + "</status><tracking>" + q + "</tracking></status>"
 }
 
+//Set request to catalogRequestConfirm->CatalogRequestID(o)
 func (self *Api) CatalogRequestConfirm(o string) {
 	self.confirm = "  <catalogRequestConfirm><CatalogRequestID>" + o + "</CatalogRequestID></catalogRequestConfirm>"
 }
 
-func (self *Api) PushInventory(o string) {
+//Set the request to an inventory update call
+//using o as the data
+func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
+	fmt.Printf("Should we ignore inventory? %+v\n", t)
+	if t {
+		self.prodIgnore = true
+	}
 }
 
+//Convert an XML response containing order to an Orders object
 func (self *Api) UnmarshalOrders(n []byte) Orders {
 	orders := Orders{}
 	err := xml.Unmarshal(n, &orders)
@@ -179,6 +229,7 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 	return orders
 }
 
+//Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	products := Products{}
 	err := xml.Unmarshal(n, &products)
@@ -188,6 +239,7 @@ func (self *Api) UnmarshalInventory(n []byte) Products {
 	return products
 }
 
+//Convert an XML response containing a single product to a Product object
 func (self *Api) UnmarshalProduct(n []byte) Product {
 	product := Product{}
 	err := xml.Unmarshal(n, &product)
@@ -197,6 +249,10 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 	return product
 }
 
+//Send the request, return the response
+//Note, one of the above requests must
+//be set up first, and the credentials must be
+//set up for this to work
 func (self *Api) Execute() (n []byte) {
 	//  var pre_n []byte
 	w := Credentials{User: self.user, Password: self.pass, ServiceID: self.serviceID}
@@ -207,15 +263,27 @@ func (self *Api) Execute() (n []byte) {
 	t := RequestBody{Auth: w, Requests: []Request{x}}
 	v := CV3Data{CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
 	xmlbytes, err := xml.MarshalIndent(v, "  ", "    ")
+	if err != nil {
+		fmt.Println(err)
+	}
 	xmlstring := string(xmlbytes)
 	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	if self.prodIgnore {
+		xmlstring = strings.Replace(xmlstring, "<products>", `<products ignore_new_products="true">`, -1)
+	}
 	if self.Debug == true {
+		fmt.Printf("Printing request string: ")
 		fmt.Printf(xmlstring)
 	}
 	encodedString := toBase64(xmlstring)
 	xmlstring = xml.Header + fmt.Sprintf(soapEnvelope, encodedString)
 	if err == nil {
-		client := &http.Client{}
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client := &http.Client{Transport: tr}
+		//client := &http.Client{}
 		body := nopCloser{bytes.NewBufferString(xmlstring)}
 		if err == nil {
 			req, err := http.NewRequest("POST", cv3_endpoint, body)
@@ -228,23 +296,27 @@ func (self *Api) Execute() (n []byte) {
 				resp, err := client.Do(req)
 				if err != nil {
 					fmt.Printf("Request error: %v", err)
+					os.Exit(1)
 					return
 				}
 				res, err := ioutil.ReadAll(resp.Body)
 				resp.Body.Close()
 				if err != nil {
 					fmt.Printf("Read Response Error: %v", err)
+					os.Exit(1)
 					return
 				}
 				y := response{}
 				err = xml.Unmarshal([]byte(res), &y)
 				if err != nil {
 					fmt.Printf("Unmarshal error: %v", err)
+					os.Exit(1)
 					return
 				}
 				n, err = base64.StdEncoding.DecodeString(y.Data)
 				if err != nil {
 					fmt.Printf("Decoding error: %v", err)
+					os.Exit(1)
 					return
 				}
 			}
@@ -252,6 +324,11 @@ func (self *Api) Execute() (n []byte) {
 	}
 	if self.Debug == true {
 		fmt.Printf(string(n))
+	}
+	if strings.Contains(string(n), "<error>") {
+		start := strings.Index(string(n), "<error>") + 7
+		end := strings.Index(string(n), "</error>")
+		fmt.Println("\nAn error occured: " + string(n[start:end]))
 	}
 	return
 }
