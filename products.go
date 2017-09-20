@@ -25,7 +25,7 @@ type Product struct {
 	MetaTitle                string       `xml:"Meta>Title,omitempty"`
 	MetaDescription          string       `xml:"Meta>Description,omitempty"`
 	ImageSetThumb1           string       `xml:"Images>Image>Thumbnail,omitempty"`
-	CategoryIDs              []CategoryID `xml:"Categories,omitempty"`
+	CategoryIDs              []string     `xml:"Categories>ID,omitempty"`
 }
 
 //SubProduct TODO good description
@@ -43,11 +43,6 @@ type SubProduct struct {
 //ProductIDs struct to hold product IDs
 type ProductIDs struct {
 	ID []string `xml:"productIDs>ID"`
-}
-
-//CategoryID used in the product struct
-type CategoryID struct {
-	ID string `xml:"ID"`
 }
 
 // type ProductId struct {
