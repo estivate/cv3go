@@ -28,25 +28,6 @@ type Product struct {
 	CategoryIDs              []CategoryID `xml:"Categories,omitempty"`
 }
 
-/*
-type SearchItem struct {
-	SKU               string `gorm:"primary_key"`
-	ProdName          string
-	ProdDescription   string
-	ChildImage        string
-	RetailPrice1      string
-	ProductURLName    string
-	Keywords          string
-	MetaKeywords      string
-	MetaTitle         string
-	MetaDescription   string
-	ImageSetThumb1    string
-	CategoryIDs       string
-	DefaultCategoryID string
-	SearchKeys        string
-	KeyWords          string
-}*/
-
 //SubProduct TODO good description
 type SubProduct struct {
 	Inactive                 string `xml:"inactive,attr"`
