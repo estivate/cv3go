@@ -1,9 +1,11 @@
 package cv3go
 
-// data sructure for Products
+// Products data sructure for Products
 type Products struct {
 	Products []Product `xml:"products>product"`
 }
+
+//Product is the struct used when unmarshaling inventory items
 type Product struct {
 	Inactive                 string       `xml:"inactive,attr"`
 	Sku                      string       `xml:"SKU"`
@@ -17,7 +19,35 @@ type Product struct {
 	OutOfStock               string       `xml:"InventoryControl>OutOfStockPoint,omitempty"`
 	InventoryBackorderedDate string       `xml:"InventoryControl>InventoryBackorderedDate,omitempty"`
 	SubProducts              []SubProduct `xml:"SubProducts>SubProduct,omitempty"`
+	Description              string       `xml:"Description,omitempty"`
+	Keywords                 string       `xml:"Keywords,omitempty"`
+	MetaKeywords             string       `xml:"Meta>Keyword,omitempty"`
+	MetaTitle                string       `xml:"Meta>Title,omitempty"`
+	MetaDescription          string       `xml:"Meta>Description,omitempty"`
+	ImageSetThumb1           string       `xml:"Images>Image>Thumbnail,omitempty"`
+	CategoryIDs              []CategoryID `xml:"Categories,omitempty"`
 }
+
+/*
+type SearchItem struct {
+	SKU               string `gorm:"primary_key"`
+	ProdName          string
+	ProdDescription   string
+	ChildImage        string
+	RetailPrice1      string
+	ProductURLName    string
+	Keywords          string
+	MetaKeywords      string
+	MetaTitle         string
+	MetaDescription   string
+	ImageSetThumb1    string
+	CategoryIDs       string
+	DefaultCategoryID string
+	SearchKeys        string
+	KeyWords          string
+}*/
+
+//SubProduct TODO good description
 type SubProduct struct {
 	Inactive                 string `xml:"inactive,attr"`
 	Sku                      string `xml:"SKU"`
@@ -29,8 +59,14 @@ type SubProduct struct {
 	InventoryBackorderedDate string `xml:"InventoryControl>InventoryBackorderedDate"`
 }
 
+//ProductIDs struct to hold product IDs
 type ProductIDs struct {
 	ID []string `xml:"productIDs>ID"`
+}
+
+//CategoryID used in the product struct
+type CategoryID struct {
+	ID string `xml:"ID"`
 }
 
 // type ProductId struct {
