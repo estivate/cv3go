@@ -10,7 +10,7 @@ Usage:
 
 */
 
-//Package used to connect to the CV3 API
+//Package cv3go is used to connect to the CV3 API
 package cv3go
 
 import (
@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -31,6 +32,7 @@ const (
 	soapEnvelope = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2001/12/soap-envelope\" SOAP-ENV:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\">\n  <SOAP-ENV:Body>\n<m:CV3Data xmlns:m=\"http://soapinterop.org/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n<data xsi:type=\"xsd:string\">%v</data>\n</m:CV3Data>\n</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>\n\n"
 )
 
+//Credentials struct
 type Credentials struct {
 	XMLName   xml.Name `xml:"authenticate"`
 	User      string   `xml:"user"`
@@ -38,28 +40,34 @@ type Credentials struct {
 	ServiceID string   `xml:"serviceID"`
 }
 
+//RequestBody struct
 type RequestBody struct {
 	XMLName  xml.Name `xml:"request"`
 	Auth     Credentials
 	Requests []Request `xml:"requests"`
 }
 
+//Request struct
 type Request struct {
 	Request string `xml:",innerxml"`
 }
 
+//Confirm struct
 type Confirm struct {
 	Confirm string `xml:",innerxml"`
 }
 
+//OrderStatus struct
 type OrderStatus struct {
 	OrderStatus string `xml:",innerxml"`
 }
 
+//ProductCall struct
 type ProductCall struct {
 	ProductCall string `xml:",innerxml"`
 }
 
+//CV3Data struct
 type CV3Data struct {
 	// XMLName xml.Name `xml:"CV3Data"`
 	CV3Data       RequestBody
@@ -86,6 +94,7 @@ func toBase64(data string) string {
 	return buf.String()
 }
 
+//Api is the struct to send api calls
 type Api struct {
 	Debug       bool
 	user        string
@@ -98,13 +107,13 @@ type Api struct {
 	orderStatus string
 }
 
-//Generate a new API
+//NewApi Generate a new API
 func NewApi() *Api {
 	api := new(Api)
 	return api
 }
 
-//Set the credentials of the API
+//SetCredentials Set the credentials of the API
 func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
 	self.pass = password
@@ -112,18 +121,18 @@ func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.prodIgnore = false
 }
 
-//Set the request to reqCustomerInformation
+//GetCustomerGroups Set the request to reqCustomerInformation
 func (self *Api) GetCustomerGroups() {
 	self.request = "<reqCustomerInformation members_only=\"false\"/>"
 }
 
-//Set the request to reqProducts->reqProductSingle
+//GetProductSingle Set the request to reqProducts->reqProductSingle
 //containing string(o) as the data
 func (self *Api) GetProductSingle(o string) {
 	self.request = "<reqProducts><reqProductSingle>" + o + "</reqProductSingle></reqProducts>"
 }
 
-//Set the request to reqProducts->reqProductSKU
+//GetProductSKU Set the request to reqProducts->reqProductSKU
 //containing string(o) as the data
 func (self *Api) GetProductSKU(o string, t bool) {
 	if t {
@@ -133,6 +142,7 @@ func (self *Api) GetProductSKU(o string, t bool) {
 	}
 }
 
+//GetProductSKUs gets the product skus
 func (self *Api) GetProductSKUs(o []string, t bool) {
 	req := "<reqProducts export_sku_only=\""
 	if t {
@@ -148,13 +158,13 @@ func (self *Api) GetProductSKUs(o []string, t bool) {
 	self.request = req
 }
 
-//Set the request to reqProducts->reqProductRange
+//GetProductRange Set the request to reqProducts->reqProductRange
 //using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
 	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
 }
 
-//Set the request to reqProductIDs
+//GetProductIds Set the request to reqProductIDs
 func (self *Api) GetProductIds() ProductIDs {
 	self.request = "<reqProductIDs />"
 	data := self.Execute()
@@ -166,12 +176,12 @@ func (self *Api) GetProductIds() ProductIDs {
 	return p
 }
 
-//Set the request to reqProductSKU
+//GetProductSkus Set the request to reqProductSKU
 func (self *Api) GetProductSkus() {
 	self.request = "<reqProductSKU />"
 }
 
-//Set the request to reqCatalogRequests->reqNew
+//GetCatalogRequestsNew Set the request to reqCatalogRequests->reqNew
 func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	self.request = "<reqCatalogRequests><reqNew/></reqCatalogRequests>"
 	catalogs := CatalogRequests{}
@@ -183,33 +193,33 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
-//Set the request to reqOrders->reqOrderNew
+//GetOrdersNew Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
 }
 
-//Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
+//GetOrdersRange Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
 	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
-//Set request to orderConfirm->orderConf
+//OrderConfirm Set request to orderConfirm->orderConf
 //using string o as contents
 func (self *Api) OrderConfirm(o string) {
 	self.confirm = "  <orderConfirm><orderConf>" + o + "</orderConf></orderConfirm>"
 }
 
-//Set request to status->[orderID(o),status(p),tracking(q)]
+//UpdateOrderStatus Set request to status->[orderID(o),status(p),tracking(q)]
 func (self *Api) UpdateOrderStatus(o string, p string, q string) {
 	self.orderStatus = "  <status><orderID>" + o + "</orderID><status>" + p + "</status><tracking>" + q + "</tracking></status>"
 }
 
-//Set request to catalogRequestConfirm->CatalogRequestID(o)
+//CatalogRequest Set request to catalogRequestConfirm->CatalogRequestID(o)
 func (self *Api) CatalogRequestConfirm(o string) {
 	self.confirm = "  <catalogRequestConfirm><CatalogRequestID>" + o + "</CatalogRequestID></catalogRequestConfirm>"
 }
 
-//Set the request to an inventory update call
+//PushInventory Set the request to an inventory update call
 //using o as the data
 func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
@@ -219,7 +229,7 @@ func (self *Api) PushInventory(o string, t bool) {
 	}
 }
 
-//Convert an XML response containing order to an Orders object
+//UnmarshalOrders Convert an XML response containing order to an Orders object
 func (self *Api) UnmarshalOrders(n []byte) Orders {
 	orders := Orders{}
 	err := xml.Unmarshal(n, &orders)
@@ -229,8 +239,9 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 	return orders
 }
 
-//Convert an XML response containing Inventory to a Products object
+//UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
+	n = CheckUTF8(n)
 	products := Products{}
 	err := xml.Unmarshal(n, &products)
 	if err != nil {
@@ -239,7 +250,7 @@ func (self *Api) UnmarshalInventory(n []byte) Products {
 	return products
 }
 
-//Convert an XML response containing a single product to a Product object
+//UnmarshalProduct Convert an XML response containing a single product to a Product object
 func (self *Api) UnmarshalProduct(n []byte) Product {
 	product := Product{}
 	err := xml.Unmarshal(n, &product)
@@ -249,7 +260,7 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 	return product
 }
 
-//Send the request, return the response
+//Execute Sends the request, return the response
 //Note, one of the above requests must
 //be set up first, and the credentials must be
 //set up for this to work
@@ -331,4 +342,14 @@ func (self *Api) Execute() (n []byte) {
 		fmt.Println("\nAn error occured: " + string(n[start:end]))
 	}
 	return
+}
+
+//CheckUTF8 converts []byte to []rune to string to []byte to make sure only utf8 characters are used.
+func CheckUTF8(b []byte) []byte {
+	//if b does not cantain valid utf8
+	if !utf8.Valid(b) {
+		//convert b into []rune then string then back into []byte
+		return []byte(string(bytes.Runes(b)))
+	} // else b is valid utf8
+	return b
 }
