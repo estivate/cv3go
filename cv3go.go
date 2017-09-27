@@ -320,6 +320,7 @@ func (self *Api) Execute() (n []byte) {
 				y := response{}
 				err = xml.Unmarshal([]byte(res), &y)
 				if err != nil {
+					fmt.Println(res)
 					fmt.Printf("Unmarshal error: %v", err)
 					os.Exit(1)
 					return
@@ -352,4 +353,22 @@ func CheckUTF8(b []byte) []byte {
 		return []byte(string(bytes.Runes(b)))
 	} // else b is valid utf8
 	return b
+}
+
+//GetAllCategories uses reqCategoryRange with no end set
+func (self *Api) GetAllCategories() {
+	self.request = `<reqCategories>
+ <reqCategoryRange start="0"/>
+ </reqCategories>`
+}
+
+//UnmarshalCategories
+func (self *Api) UnmarshalCategories(n []byte) Categories {
+	//n = CheckUTF8(n)
+	categories := Categories{}
+	err := xml.Unmarshal(n, &categories)
+	if err != nil {
+		fmt.Printf("can't get categories: %v", err)
+	}
+	return categories
 }
