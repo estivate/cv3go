@@ -7,20 +7,21 @@ type Categories struct {
 
 //Category is the struct used when unmarshaling categories
 type Category struct {
-	Invisible          string   `xml:"invisible,attr"`
-	Featured           string   `xml:"featured,attr"`
-	Name               string   `xml:"Name,omitempty"`
-	ID                 string   `xml:"ID,omitempty"`
-	URLName            string   `xml:"URLName,omitempty"`
-	Description        string   `xml:"Description,omitempty"`
-	MetaTitle          string   `xml:"MetaTitle,omitempty"`
-	MetaDescription    string   `xml:"MetaDescription,omitempty"`
-	MetaKeywords       string   `xml:"MetaKeyword,omitempty"`
-	Template           string   `xml:"Template,omitempty"`
-	NumProductsPerPage string   `xml:"NumProductsPerPage,omitempty"`
-	Products           []string `xml:"Products>SKU,omitempty"`
-	FeaturedProducts   []string `xml:"FeaturedProducts>SKU,omitempty"`
-	CustomFields       []Custom `xml:"Custom,omitempty"`
+	Invisible          string     `xml:"invisible,attr"`
+	Featured           string     `xml:"featured,attr"`
+	Name               string     `xml:"Name,omitempty"`
+	ID                 string     `xml:"ID,omitempty"`
+	URLName            string     `xml:"URLName,omitempty"`
+	Description        string     `xml:"Description,omitempty"`
+	MetaTitle          string     `xml:"MetaTitle,omitempty"`
+	MetaDescription    string     `xml:"MetaDescription,omitempty"`
+	MetaKeywords       string     `xml:"MetaKeyword,omitempty"`
+	Template           string     `xml:"Template,omitempty"`
+	NumProductsPerPage string     `xml:"NumProductsPerPage,omitempty"`
+	Products           []string   `xml:"Products>SKU,omitempty"`
+	FeaturedProducts   []string   `xml:"FeaturedProducts>SKU,omitempty"`
+	CustomFields       []Custom   `xml:"Custom,omitempty"`
+	SubCategories      []Category `xml:"SubCategories>SubCategory"`
 }
 
 //Custom is the struct to hold the custom fields

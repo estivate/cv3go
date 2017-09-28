@@ -357,10 +357,22 @@ func CheckUTF8(b []byte) []byte {
 
 //GetAllCategories uses reqCategoryRange with no end set
 func (self *Api) GetAllCategories() {
-	self.request = `<reqCategories>
- <reqCategoryRange start="0"/>
- </reqCategories>`
+	self.request = /*`<reqCategories>
+				<reqCategorySingle>908</reqCategorySingle>
+				</reqCategories>`
+		top_level_only="true"
+		*/
+
+		`<reqCategories >
+	    <reqCategoryRange  start="0"/>
+	    </reqCategories>`
 }
+
+/*
+<reqCategories>
+ <reqCategorySingle>1</reqCategorySingle>
+ </reqCategories
+*/
 
 //UnmarshalCategories
 func (self *Api) UnmarshalCategories(n []byte) Categories {
