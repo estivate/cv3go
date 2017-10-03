@@ -8,6 +8,7 @@ type Categories struct {
 //Category is the struct used when unmarshaling categories
 type Category struct {
 	Invisible          string        `xml:"invisible,attr"`
+	TopLevel           string        //not sent in xml, set in cv3Intigration.getCategories.go
 	Featured           string        `xml:"featured,attr"`
 	Name               string        `xml:"Name,omitempty"`
 	ID                 string        `xml:"ID,omitempty"`
