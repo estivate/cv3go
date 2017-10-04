@@ -23,6 +23,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -371,11 +373,70 @@ func (self *Api) GetAllCategories() {
 	    </reqCategories>`
 }
 
+//GetAllExceptCategories uses reqCategoryRange with no end set
+func (self *Api) GetAllExceptCategories(exceptIDs []string) {
+	var exInts = StringToIntSlice(exceptIDs) //get a slice of ints from the category ids to skip
+	var buf = bytes.NewBufferString(`<reqCategories >
+		`)
+	//skip all the passed in category ids
+	for i := range exceptIDs {
+		if i == 0 { //start at 0
+			buf.WriteString(`<reqCategoryRange  start="0" `)
+			buf.WriteString(`end="`)
+			//end right before the category id
+			buf.WriteString(strconv.Itoa(exInts[i] - 1))
+			buf.WriteString(`"/>
+				`)
+			//else if the current category id, is not the previous id +1
+		} else if i == len(exInts)-1 {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i] + 1))
+			buf.WriteString(`"/>
+				</reqCategories>`)
+		} else if exInts[i]+1 != exInts[i+1] {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i-1] + 1))
+			buf.WriteString(`" `)
+			buf.WriteString(`end="`)
+			//end right before the current id
+			buf.WriteString(strconv.Itoa(exInts[i] - 1))
+			buf.WriteString(`"/>
+				`)
+			/*if i == 8 || i == 9 || i == 10 || i == 7 {
+				fmt.Print(" i: ", i)
+				fmt.Println(" exInt: ", exInts[i])
+			}*/
+			//else if its the last category id to skip
+		} else {
+			//do nothing.  This category id does not need to be used. Because the next id should be skipped as well
+		}
+	}
+	self.request = buf.String()
+	fmt.Println(buf.String())
+}
+
 /*
 <reqCategories>
  <reqCategorySingle>1</reqCategorySingle>
  </reqCategories
 */
+
+//StringToIntSlice converts a slice of strings into a slice of inherits
+func StringToIntSlice(strs []string) []int {
+	var ints = make([]int, len(strs))
+	for i, s := range strs {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			fmt.Println("error converting string to int: ", err)
+		} else {
+			ints[i] = n
+		}
+	}
+	sort.Ints(ints)
+	return ints
+}
 
 //UnmarshalCategories
 func (self *Api) UnmarshalCategories(n []byte) Categories {
