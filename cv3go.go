@@ -357,25 +357,24 @@ func CheckUTF8(b []byte) []byte {
 	return b
 }
 
-//GetTopLevelCategories uses reqCategoryRange with `top_level_only="true"` and  no end set
-func (self *Api) GetTopLevelCategories() {
-	self.request =
-		`<reqCategories top_level_only="true">
-	    <reqCategoryRange   start="0"/>
-	    </reqCategories>`
-}
-
 //GetAllCategories uses reqCategoryRange with no end set
-func (self *Api) GetAllCategories() {
-	self.request =
-		`<reqCategories >
-	    <reqCategoryRange  start="0"/>
-	    </reqCategories>`
+func (self *Api) GetAllCategories(isTopLevel bool) {
+	var buf = bytes.NewBufferString(`<reqCategories`)
+	if isTopLevel {
+		buf.WriteString(` top_level_only="true">`)
+	} else { //if not topLevel
+		buf.WriteString(`>`)
+	}
+	buf.WriteString(`<reqCategoryRange  start="0"/>
+	</reqCategories>`)
+	self.request = buf.String()
 }
 
-//GetAllExceptCategories uses reqCategoryRange with no end set
-func (self *Api) GetAllExceptCategories(exceptIDs []string) {
-	var exInts = StringToIntSlice(exceptIDs) //get a slice of ints from the category ids to skip
+//GetAllCategoriesExcept uses reqCategoryRange with a passed in slice of ids to skip
+func (self *Api) GetAllCategoriesExcept(exceptIDs []string) {
+	var exInts = StringToIntSlice(exceptIDs) //get a sorted slice of ints from the category ids to skip
+	var skipCount = 0                        //for keeping track of ids that need to be skipped when the next id also needs to be skipped
+	//start the xml
 	var buf = bytes.NewBufferString(`<reqCategories >
 		`)
 	//skip all the passed in category ids
@@ -387,43 +386,36 @@ func (self *Api) GetAllExceptCategories(exceptIDs []string) {
 			buf.WriteString(strconv.Itoa(exInts[i] - 1))
 			buf.WriteString(`"/>
 				`)
-			//else if the current category id, is not the previous id +1
+			//else if the current category id, is the last id in the slice
 		} else if i == len(exInts)-1 {
 			buf.WriteString(`<reqCategoryRange  start="`)
 			//start right after the last id
 			buf.WriteString(strconv.Itoa(exInts[i] + 1))
 			buf.WriteString(`"/>
 				</reqCategories>`)
-		} else if exInts[i]+1 != exInts[i+1] {
+			//check if the next id is NOT 1 + the current id
+		} else if exInts[i]+1 != exInts[i+1] { //&& exInts[i]-1 != exInts[i-1] {
 			buf.WriteString(`<reqCategoryRange  start="`)
 			//start right after the last id
-			buf.WriteString(strconv.Itoa(exInts[i-1] + 1))
+			buf.WriteString(strconv.Itoa(exInts[i-1-skipCount] + 1))
 			buf.WriteString(`" `)
 			buf.WriteString(`end="`)
 			//end right before the current id
-			buf.WriteString(strconv.Itoa(exInts[i] - 1))
+			buf.WriteString(strconv.Itoa(exInts[i-skipCount] - 1))
 			buf.WriteString(`"/>
 				`)
-			/*if i == 8 || i == 9 || i == 10 || i == 7 {
-				fmt.Print(" i: ", i)
-				fmt.Println(" exInt: ", exInts[i])
-			}*/
+			skipCount = 0 //set to zero, as this was not skipped
 			//else if its the last category id to skip
 		} else {
-			//do nothing.  This category id does not need to be used. Because the next id should be skipped as well
+			//keep track of how many consecutive indexes are skipped
+			skipCount++
 		}
 	}
 	self.request = buf.String()
-	fmt.Println(buf.String())
 }
 
-/*
-<reqCategories>
- <reqCategorySingle>1</reqCategorySingle>
- </reqCategories
-*/
-
-//StringToIntSlice converts a slice of strings into a slice of inherits
+//StringToIntSlice converts a slice of strings into a sorted slice of inherits
+//used in GetAllCategoriesExcept()
 func StringToIntSlice(strs []string) []int {
 	var ints = make([]int, len(strs))
 	for i, s := range strs {
