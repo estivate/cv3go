@@ -163,7 +163,7 @@ func (self *Api) GetProductSKUs(o []string, t bool) {
 //GetProductRange Set the request to reqProducts->reqProductRange
 //using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
-	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
+	self.request = "<reqProducts ignore_inactive='true' ><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
 }
 
 //GetProductIds Set the request to reqProductIDs
