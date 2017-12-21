@@ -1,5 +1,7 @@
 package cv3go
 
+import "encoding/xml"
+
 // Products data sructure for Products
 type Products struct {
 	Products []Product `xml:"product,omitempty"`
@@ -7,6 +9,7 @@ type Products struct {
 
 //Product is the struct used when unmarshaling inventory items
 type Product struct {
+	XMLName          xml.Name         `xml:"product"`
 	Inactive         string           `xml:"inactive,attr"`
 	Sku              string           `xml:"SKU"`
 	ProdId           string           `xml:"ProdID,omitempty"`
