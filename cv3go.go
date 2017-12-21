@@ -160,6 +160,11 @@ func (self *Api) GetProductSKUs(o []string, t bool) {
 	self.request = req
 }
 
+//GetProductSingleBySKU is from Ben, to get a singlee product by sku
+func (self *Api) GetProductSingleBySKU(o string) {
+	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+}
+
 //GetProductRange Set the request to reqProducts->reqProductRange
 //using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
@@ -337,6 +342,7 @@ func (self *Api) Execute() (n []byte) {
 		}
 	}
 	if self.Debug == true {
+		fmt.Println("this should be the response")
 		fmt.Printf(string(n))
 	}
 	if strings.Contains(string(n), "<error>") {
