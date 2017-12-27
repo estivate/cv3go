@@ -17,7 +17,7 @@ type Product struct {
 	UrlName          string           `xml:"URLName,omitempty"`
 	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
 	Retail           Retail           `xml:"Retail,omitempty"`
-	SubProducts      []SubProduct     `xml:"SubProducts,omitempty>SubProduct,omitempty"`
+	SubProducts      SubProducts      `xml:"SubProducts,omitempty>SubProduct,omitempty"`
 	Description      string           `xml:"Description,omitempty"`
 	Keywords         string           `xml:"Keywords,omitempty"`
 	Meta             Meta             `xml:"Meta,omitempty"`
@@ -66,16 +66,20 @@ type ProdCategories struct {
 	IDs []string `xml:"ID,omitempty"`
 }
 
+//SubProducts is an array of type SubProduct
+type SubProducts struct {
+	SubProducts []SubProduct
+	Active      string `xml:"active,attr"`
+}
+
 //SubProduct TODO good description
 type SubProduct struct {
-	Inactive                 string `xml:"inactive,attr,omitempty"`
-	Sku                      string `xml:"SKU,omitempty"`
-	ProdId                   string `xml:"ProdID,omitempty"`
-	Name                     string `xml:"Name,omitempty"`
-	InventoryStatus          string `xml:"InventoryControl>Status,omitempty"`
-	InventoryOnHand          string `xml:"InventoryControl>Inventory,omitempty"`
-	OnOrder                  string `xml:"InventoryControl>OnOrder,omitempty"`
-	InventoryBackorderedDate string `xml:"InventoryControl>InventoryBackorderedDate,omitempty"`
+	XMLName          xml.Name         `xml:"SubProduct"`
+	Inactive         string           `xml:"inactive,attr,omitempty"`
+	Sku              string           `xml:"SKU,omitempty"`
+	ProdId           string           `xml:"ProdID,omitempty"`
+	Name             string           `xml:"Name,omitempty"`
+	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
 }
 
 //ProductIDs struct to hold product IDs
