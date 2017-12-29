@@ -207,7 +207,7 @@ func (self *Api) GetOrdersNew() {
 
 //GetOrdersRange Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
-	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
+	self.request = "<reqOrders><reqOrderRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
 //OrderConfirm Set request to orderConfirm->orderConf
