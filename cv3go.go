@@ -446,3 +446,13 @@ func (self *Api) UnmarshalCategories(n []byte) Categories {
 	}
 	return categories
 }
+
+//PrintToFile will print the passed in []bytes to a file
+func PrintToFile(b []byte, fileName string) {
+	fi, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	fi.Write(b)
+	fi.Close()
+}
