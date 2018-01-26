@@ -37,6 +37,7 @@ type Product struct {
 
 //InventoryControl struct for marshalling and unmarshalling cv3's xml node of InventoryControl
 type InventoryControl struct {
+	InventoryControlExempt   string `xml:"inventory_control_exempt,attr,omitempty"`
 	InventoryStatus          string `xml:"Status,omitempty"`
 	InventoryOnHand          string `xml:"Inventory,omitempty"`
 	OnOrder                  string `xml:"OnOrder,omitempty"`
@@ -46,12 +47,13 @@ type InventoryControl struct {
 
 //Retail is the struct for marshalling and unmarshalling cv3's retail node
 type Retail struct {
-	Price Pricing `xml:"Price,omitempty"`
+	Active string  `xml:"active,attr,omitempty"`
+	Price  Pricing `xml:"Price,omitempty"`
 }
 
 //Pricing is the struct for marshalling and unmarshalling cv3's price node
 type Pricing struct {
-	Pricecategory string `xml:"price_category,attr,omitempty"`
+	PriceCategory string `xml:"price_category,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
 }
 
