@@ -2,8 +2,18 @@ package cv3go
 
 import "encoding/xml"
 
+//C s
+type C struct {
+	// XMLName xml.Name `xml:"CV3Data"`
+	CV3Data       RequestBody
+	Confirms      []Confirm     `xml:"confirm"`
+	OrderStatuses []OrderStatus `xml:"orders"`
+	Products      Products      `xml:"products"`
+}
+
 // Products data sructure for Products
 type Products struct {
+	XMLName  xml.Name  `xml:"products"`
 	Products []Product `xml:"product,omitempty"`
 }
 
@@ -41,6 +51,7 @@ type Retail struct {
 
 //Pricing is the struct for marshalling and unmarshalling cv3's price node
 type Pricing struct {
+	Pricecategory string `xml:"price_category,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
 }
 

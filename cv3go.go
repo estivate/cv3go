@@ -249,12 +249,12 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 //UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	n = CheckUTF8(n)
-	products := Products{}
-	err := xml.Unmarshal(n, &products)
+	cv3Data := C{}
+	err := xml.Unmarshal(n, &cv3Data)
 	if err != nil {
 		fmt.Printf("can't get products: %v", err)
 	}
-	return products
+	return cv3Data.Products
 }
 
 //UnmarshalProduct Convert an XML response containing a single product to a Product object
