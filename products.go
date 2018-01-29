@@ -27,7 +27,7 @@ type Product struct {
 	UrlName          string           `xml:"URLName,omitempty"`
 	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
 	Retail           Retail           `xml:"Retail,omitempty"`
-	SubProducts      SubProducts      `xml:"SubProducts,omitempty>SubProduct,omitempty"`
+	SubProducts      SubProducts      `xml:"SubProducts,omitempty"`
 	Description      string           `xml:"Description,omitempty"`
 	Keywords         string           `xml:"Keywords,omitempty"`
 	Meta             Meta             `xml:"Meta,omitempty"`
@@ -81,8 +81,8 @@ type ProdCategories struct {
 
 //SubProducts is an array of type SubProduct
 type SubProducts struct {
-	SubProducts []SubProduct
-	Active      string `xml:"active,attr"`
+	SubProducts []SubProduct `xml:"SubProduct,omitempty"`
+	Active      string       `xml:"active,attr"`
 }
 
 //SubProduct TODO good description
