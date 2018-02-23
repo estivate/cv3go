@@ -27,6 +27,7 @@ type Product struct {
 	ProdId           string           `xml:"ProdID,omitempty"`
 	Name             string           `xml:"Name,omitempty"`
 	UrlName          string           `xml:"URLName,omitempty"`
+	Brand            string           `xml:"Brand,omitempty"`
 	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
 	Retail           Retail           `xml:"Retail,omitempty"`
 	SubProducts      SubProducts      `xml:"SubProducts,omitempty"`
