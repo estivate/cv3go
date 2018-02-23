@@ -119,8 +119,12 @@ func (self *Api) GetCustomerGroups() {
 
 //Set the request to reqProducts->reqProductSingle
 //containing string(o) as the data
-func (self *Api) GetProductSingle(o string) {
-	self.request = "<reqProducts><reqProductSingle>" + o + "</reqProductSingle></reqProducts>"
+func (self *Api) GetProductSingle(o []string) {
+	self.request = "<reqProducts>"
+	for _, product := range o {
+		self.request += "<reqProductSingle>" + product + "</reqProductSingle>"
+	}
+	self.request += "</reqProducts>"
 }
 
 //Set the request to reqProducts->reqProductSKU

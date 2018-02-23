@@ -4,6 +4,9 @@ package cv3go
 type Products struct {
 	Products []Product `xml:"products>product"`
 }
+
+//type Products []Product
+
 type Product struct {
 	Inactive                 string       `xml:"inactive,attr"`
 	Sku                      string       `xml:"SKU"`
@@ -14,6 +17,7 @@ type Product struct {
 	InventoryOnHand          string       `xml:"InventoryControl>Inventory,omitempty"`
 	OnOrder                  string       `xml:"InventoryControl>OnOrder,omitempty"`
 	Price                    string       `xml:"Retail>Price>StandardPrice,omitempty"`
+	SpecialPrice             string       `xml:"Retail>Price>SpecialPrice,omitempty"`
 	OutOfStock               string       `xml:"InventoryControl>OutOfStockPoint,omitempty"`
 	InventoryBackorderedDate string       `xml:"InventoryControl>InventoryBackorderedDate,omitempty"`
 	SubProducts              []SubProduct `xml:"SubProducts>SubProduct,omitempty"`
@@ -32,7 +36,3 @@ type SubProduct struct {
 type ProductIDs struct {
 	ID []string `xml:"productIDs>ID"`
 }
-
-// type ProductId struct {
-// 	Id string `xml:"ID"`
-// }
