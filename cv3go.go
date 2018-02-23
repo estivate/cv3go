@@ -10,7 +10,7 @@ Usage:
 
 */
 
-//Package used to connect to the CV3 API
+//Package cv3go is used to connect to the CV3 API
 package cv3go
 
 import (
@@ -23,7 +23,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
@@ -31,6 +34,7 @@ const (
 	soapEnvelope = "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://www.w3.org/2001/12/soap-envelope\" SOAP-ENV:encodingStyle=\"http://www.w3.org/2001/12/soap-encoding\">\n  <SOAP-ENV:Body>\n<m:CV3Data xmlns:m=\"http://soapinterop.org/\" SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n<data xsi:type=\"xsd:string\">%v</data>\n</m:CV3Data>\n</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>\n\n"
 )
 
+//Credentials struct
 type Credentials struct {
 	XMLName   xml.Name `xml:"authenticate"`
 	User      string   `xml:"user"`
@@ -38,28 +42,34 @@ type Credentials struct {
 	ServiceID string   `xml:"serviceID"`
 }
 
+//RequestBody struct
 type RequestBody struct {
 	XMLName  xml.Name `xml:"request"`
 	Auth     Credentials
 	Requests []Request `xml:"requests"`
 }
 
+//Request struct
 type Request struct {
 	Request string `xml:",innerxml"`
 }
 
+//Confirm struct
 type Confirm struct {
 	Confirm string `xml:",innerxml"`
 }
 
+//OrderStatus struct
 type OrderStatus struct {
 	OrderStatus string `xml:",innerxml"`
 }
 
+//ProductCall struct
 type ProductCall struct {
 	ProductCall string `xml:",innerxml"`
 }
 
+//CV3Data struct
 type CV3Data struct {
 	// XMLName xml.Name `xml:"CV3Data"`
 	CV3Data       RequestBody
@@ -86,6 +96,7 @@ func toBase64(data string) string {
 	return buf.String()
 }
 
+//Api is the struct to send api calls
 type Api struct {
 	Debug       bool
 	user        string
@@ -98,13 +109,13 @@ type Api struct {
 	orderStatus string
 }
 
-//Generate a new API
+//NewApi Generate a new API
 func NewApi() *Api {
 	api := new(Api)
 	return api
 }
 
-//Set the credentials of the API
+//SetCredentials Set the credentials of the API
 func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
 	self.pass = password
@@ -112,18 +123,18 @@ func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.prodIgnore = false
 }
 
-//Set the request to reqCustomerInformation
+//GetCustomerGroups Set the request to reqCustomerInformation
 func (self *Api) GetCustomerGroups() {
 	self.request = "<reqCustomerInformation members_only=\"false\"/>"
 }
 
-//Set the request to reqProducts->reqProductSingle
+//GetProductSingle Set the request to reqProducts->reqProductSingle
 //containing string(o) as the data
 func (self *Api) GetProductSingle(o string) {
 	self.request = "<reqProducts><reqProductSingle>" + o + "</reqProductSingle></reqProducts>"
 }
 
-//Set the request to reqProducts->reqProductSKU
+//GetProductSKU Set the request to reqProducts->reqProductSKU
 //containing string(o) as the data
 func (self *Api) GetProductSKU(o string, t bool) {
 	if t {
@@ -133,6 +144,7 @@ func (self *Api) GetProductSKU(o string, t bool) {
 	}
 }
 
+//GetProductSKUs gets the product skus
 func (self *Api) GetProductSKUs(o []string, t bool) {
 	req := "<reqProducts export_sku_only=\""
 	if t {
@@ -148,13 +160,18 @@ func (self *Api) GetProductSKUs(o []string, t bool) {
 	self.request = req
 }
 
-//Set the request to reqProducts->reqProductRange
-//using start and end to dictate the range
-func (self *Api) GetProductRange(start string, end string) {
-	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
+//GetProductSingleBySKU is from Ben, to get a singlee product by sku
+func (self *Api) GetProductSingleBySKU(o string) {
+	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
 }
 
-//Set the request to reqProductIDs
+//GetProductRange Set the request to reqProducts->reqProductRange
+//using start and end to dictate the range
+func (self *Api) GetProductRange(start string, end string) {
+	self.request = "<reqProducts ignore_inactive='true' ><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
+}
+
+//GetProductIds Set the request to reqProductIDs
 func (self *Api) GetProductIds() ProductIDs {
 	self.request = "<reqProductIDs />"
 	data := self.Execute()
@@ -166,12 +183,12 @@ func (self *Api) GetProductIds() ProductIDs {
 	return p
 }
 
-//Set the request to reqProductSKU
+//GetProductSkus Set the request to reqProductSKU
 func (self *Api) GetProductSkus() {
 	self.request = "<reqProductSKU />"
 }
 
-//Set the request to reqCatalogRequests->reqNew
+//GetCatalogRequestsNew Set the request to reqCatalogRequests->reqNew
 func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	self.request = "<reqCatalogRequests><reqNew/></reqCatalogRequests>"
 	catalogs := CatalogRequests{}
@@ -183,33 +200,33 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
-//Set the request to reqOrders->reqOrderNew
+//GetOrdersNew Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
 }
 
-//Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
+//GetOrdersRange Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
-	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
+	self.request = "<reqOrders><reqOrderRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
-//Set request to orderConfirm->orderConf
+//OrderConfirm Set request to orderConfirm->orderConf
 //using string o as contents
 func (self *Api) OrderConfirm(o string) {
 	self.confirm = "  <orderConfirm><orderConf>" + o + "</orderConf></orderConfirm>"
 }
 
-//Set request to status->[orderID(o),status(p),tracking(q)]
+//UpdateOrderStatus Set request to status->[orderID(o),status(p),tracking(q)]
 func (self *Api) UpdateOrderStatus(o string, p string, q string) {
 	self.orderStatus = "  <status><orderID>" + o + "</orderID><status>" + p + "</status><tracking>" + q + "</tracking></status>"
 }
 
-//Set request to catalogRequestConfirm->CatalogRequestID(o)
+//CatalogRequest Set request to catalogRequestConfirm->CatalogRequestID(o)
 func (self *Api) CatalogRequestConfirm(o string) {
 	self.confirm = "  <catalogRequestConfirm><CatalogRequestID>" + o + "</CatalogRequestID></catalogRequestConfirm>"
 }
 
-//Set the request to an inventory update call
+//PushInventory Set the request to an inventory update call
 //using o as the data
 func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
@@ -219,7 +236,7 @@ func (self *Api) PushInventory(o string, t bool) {
 	}
 }
 
-//Convert an XML response containing order to an Orders object
+//UnmarshalOrders Convert an XML response containing order to an Orders object
 func (self *Api) UnmarshalOrders(n []byte) Orders {
 	orders := Orders{}
 	err := xml.Unmarshal(n, &orders)
@@ -229,17 +246,18 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 	return orders
 }
 
-//Convert an XML response containing Inventory to a Products object
+//UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
-	products := Products{}
-	err := xml.Unmarshal(n, &products)
+	n = CheckUTF8(n)
+	cv3Data := C{}
+	err := xml.Unmarshal(n, &cv3Data)
 	if err != nil {
 		fmt.Printf("can't get products: %v", err)
 	}
-	return products
+	return cv3Data.Products
 }
 
-//Convert an XML response containing a single product to a Product object
+//UnmarshalProduct Convert an XML response containing a single product to a Product object
 func (self *Api) UnmarshalProduct(n []byte) Product {
 	product := Product{}
 	err := xml.Unmarshal(n, &product)
@@ -249,7 +267,7 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 	return product
 }
 
-//Send the request, return the response
+//Execute Sends the request, return the response
 //Note, one of the above requests must
 //be set up first, and the credentials must be
 //set up for this to work
@@ -309,6 +327,7 @@ func (self *Api) Execute() (n []byte) {
 				y := response{}
 				err = xml.Unmarshal([]byte(res), &y)
 				if err != nil {
+					fmt.Println(res)
 					fmt.Printf("Unmarshal error: %v", err)
 					os.Exit(1)
 					return
@@ -323,6 +342,7 @@ func (self *Api) Execute() (n []byte) {
 		}
 	}
 	if self.Debug == true {
+		fmt.Println("this should be the response")
 		fmt.Printf(string(n))
 	}
 	if strings.Contains(string(n), "<error>") {
@@ -331,4 +351,108 @@ func (self *Api) Execute() (n []byte) {
 		fmt.Println("\nAn error occured: " + string(n[start:end]))
 	}
 	return
+}
+
+//CheckUTF8 converts []byte to []rune to string to []byte to make sure only utf8 characters are used.
+func CheckUTF8(b []byte) []byte {
+	//if b does not cantain valid utf8
+	if !utf8.Valid(b) {
+		//convert b into []rune then string then back into []byte
+		return []byte(string(bytes.Runes(b)))
+	} // else b is valid utf8
+	return b
+}
+
+//GetAllCategories uses reqCategoryRange with no end set
+func (self *Api) GetAllCategories(isTopLevel bool) {
+	var buf = bytes.NewBufferString(`<reqCategories`)
+	if isTopLevel {
+		buf.WriteString(` top_level_only="true">`)
+	} else { //if not topLevel
+		buf.WriteString(`>`)
+	}
+	buf.WriteString(`<reqCategoryRange  start="0"/>
+	</reqCategories>`)
+	self.request = buf.String()
+}
+
+//GetAllCategoriesExcept uses reqCategoryRange with a passed in slice of ids to skip
+func (self *Api) GetAllCategoriesExcept(exceptIDs []string) {
+	var exInts = StringToIntSlice(exceptIDs) //get a sorted slice of ints from the category ids to skip
+	var skipCount = 0                        //for keeping track of ids that need to be skipped when the next id also needs to be skipped
+	//start the xml
+	var buf = bytes.NewBufferString(`<reqCategories >
+		`)
+	//skip all the passed in category ids
+	for i := range exceptIDs {
+		if i == 0 { //start at 0
+			buf.WriteString(`<reqCategoryRange  start="0" `)
+			buf.WriteString(`end="`)
+			//end right before the category id
+			buf.WriteString(strconv.Itoa(exInts[i] - 1))
+			buf.WriteString(`"/>
+				`)
+			//else if the current category id, is the last id in the slice
+		} else if i == len(exInts)-1 {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i] + 1))
+			buf.WriteString(`"/>
+				</reqCategories>`)
+			//check if the next id is NOT 1 + the current id
+		} else if exInts[i]+1 != exInts[i+1] { //&& exInts[i]-1 != exInts[i-1] {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i-1-skipCount] + 1))
+			buf.WriteString(`" `)
+			buf.WriteString(`end="`)
+			//end right before the current id
+			buf.WriteString(strconv.Itoa(exInts[i-skipCount] - 1))
+			buf.WriteString(`"/>
+				`)
+			skipCount = 0 //set to zero, as this was not skipped
+			//else if its the last category id to skip
+		} else {
+			//keep track of how many consecutive indexes are skipped
+			skipCount++
+		}
+	}
+	self.request = buf.String()
+}
+
+//StringToIntSlice converts a slice of strings into a sorted slice of inherits
+//used in GetAllCategoriesExcept()
+func StringToIntSlice(strs []string) []int {
+	var ints = make([]int, len(strs))
+	for i, s := range strs {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			fmt.Println("error converting string to int: ", err)
+		} else {
+			ints[i] = n
+		}
+	}
+	sort.Ints(ints)
+	return ints
+}
+
+//UnmarshalCategories
+func (self *Api) UnmarshalCategories(n []byte) Categories {
+	//n = CheckUTF8(n)
+	categories := Categories{}
+	err := xml.Unmarshal(n, &categories)
+	if err != nil {
+		fmt.Printf("can't get categories: %v", err)
+	}
+	return categories
+}
+
+//PrintToFile will print the passed in []bytes to a file
+func PrintToFile(b []byte, fileName string) {
+	fi, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	fi.Write(b)
+	fi.Close()
 }

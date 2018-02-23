@@ -27,6 +27,7 @@ type ShipTo struct {
 	ShipOn         string          `xml:"shipOn"`
 	GiftWrap       string          `xml:"giftWrap"`
 	ShipToProducts []ShipToProduct `xml:"shipToProducts>shipToProduct"`
+	ShipEmail      string          `xml:"shipEmail"`
 }
 type Order struct {
 	OrderID             string             `xml:"orderID"`
