@@ -21,21 +21,33 @@ type Products struct {
 
 //Product is the struct used when unmarshaling inventory items
 type Product struct {
-	XMLName          xml.Name         `xml:"product"`
-	Inactive         string           `xml:"inactive,attr"`
-	Sku              string           `xml:"SKU"`
-	ProdId           string           `xml:"ProdID,omitempty"`
-	Name             string           `xml:"Name,omitempty"`
-	UrlName          string           `xml:"URLName,omitempty"`
-	Brand            string           `xml:"Brand,omitempty"`
-	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
-	Retail           Retail           `xml:"Retail,omitempty"`
-	SubProducts      SubProducts      `xml:"SubProducts,omitempty"`
-	Description      string           `xml:"Description,omitempty"`
-	Keywords         string           `xml:"Keywords,omitempty"`
-	Meta             Meta             `xml:"Meta,omitempty"`
-	Images           Images           `xml:"Images,omitempty"`
-	Categories       ProdCategories   `xml:"Categories,omitempty"`
+	XMLName          xml.Name          `xml:"product"`
+	Inactive         string            `xml:"inactive,attr"`
+	Sku              string            `xml:"SKU"`
+	ProdId           string            `xml:"ProdID,omitempty"`
+	Name             string            `xml:"Name,omitempty"`
+	UrlName          string            `xml:"URLName,omitempty"`
+	Brand            string            `xml:"Brand,omitempty"`
+	Retail           Retail            `xml:"Retail,omitempty"`
+	WholeSale        WholeSale         `xml:"Wholesale,omitempty`
+	Special          Special           `xml:"Special,omitempty"`
+	Weight           Weight            `xml:"Weight,omitempty"`
+	Shipping         Shipping          `xml:"Shipping,omitempty"`
+	InventoryControl InventoryControl  `xml:"InventoryControl,omitempty"`
+	SubProducts      SubProducts       `xml:"SubProducts,omitempty"`
+	Description      string            `xml:"Description,omitempty"`
+	Keywords         string            `xml:"Keywords,omitempty"`
+	Meta             Meta              `xml:"Meta,omitempty"`
+	Images           Images            `xml:"Images,omitempty"`
+	Categories       ProdCategories    `xml:"Categories,omitempty"`
+	ProdCustomFields []ProdCustomField `xml:"Custom,omitempty"`
+	ParentSKU        string            `xml:"ParentSKU,omitempty"`
+}
+
+// CustomFields struct for marshalling and unmarshalling cv3's xml nodes of Custom Fields
+type ProdCustomField struct {
+	Id    string `xml:"id,attr"`
+	Value string `xml:",cdata"`
 }
 
 //InventoryControl struct for marshalling and unmarshalling cv3's xml node of InventoryControl
@@ -95,6 +107,7 @@ type Package struct {
 type Pricing struct {
 	PriceCategory string `xml:"price_category,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
+	SpecialPrice  string `xml:"SpecialPrice,omitempty"`
 }
 
 //GiftCertificate hold information about gift certificates
@@ -137,12 +150,14 @@ type Meta struct {
 
 //Images is the struct for marshalling and unmarshalling cv3's Images node
 type Images struct {
-	Images []Image `xml:"Image,omitempty"`
+	Image []Image `xml:"Image,omitempty"`
 }
 
 //Image is the struct for marshalling and unmarshalling cv3's Images node
 type Image struct {
-	ImageSetThumb1 string `xml:"Thumbnail,omitempty"`
+	ImageSetThumb  string `xml:"Thumbnail,omitempty"`
+	ImageSetLarge  string `xml:"Large,omitempty"`
+	ImageSetPoprUp string `xml:"PopUp,omitempty"`
 }
 
 //ProdCategories is the struct for marshalling and unmarshalling cv3's Categories node
