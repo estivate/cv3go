@@ -21,18 +21,23 @@ type Products struct {
 type Product struct {
 	XMLName          xml.Name         `xml:"product"`
 	Inactive         string           `xml:"inactive,attr"`
+	New              string           `xml:"new,attr,omitempty"`
 	Sku              string           `xml:"SKU"`
 	ProdId           string           `xml:"ProdID,omitempty"`
 	Name             string           `xml:"Name,omitempty"`
 	UrlName          string           `xml:"URLName,omitempty"`
 	InventoryControl InventoryControl `xml:"InventoryControl,omitempty"`
 	Retail           Retail           `xml:"Retail,omitempty"`
+	Wholesale        Wholesale        `xml:"Wholesale,omitempty"`
 	SubProducts      SubProducts      `xml:"SubProducts,omitempty"`
 	Description      string           `xml:"Description,omitempty"`
 	Keywords         string           `xml:"Keywords,omitempty"`
 	Meta             Meta             `xml:"Meta,omitempty"`
 	Images           Images           `xml:"Images,omitempty"`
 	Categories       ProdCategories   `xml:"Categories,omitempty"`
+	DefaultCategory  string           `xml:"DefaultCategory,omitempty"`
+	Attributes       Attributes       `xml:"Attributes,omitempty"`
+	Rating           string           `xml:"Rating,omitempty"`
 }
 
 //InventoryControl struct for marshalling and unmarshalling cv3's xml node of InventoryControl
@@ -51,8 +56,8 @@ type Retail struct {
 	Price  Pricing `xml:"Price,omitempty"`
 }
 
-//WholeSale hold pricing info for a wholesale item
-type WholeSale struct {
+//Wholesale hold pricing info for a Wholesale item
+type Wholesale struct {
 	Active        string `xml:"active,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
 	Qty           string `xml:"Qty,omitempty"`
@@ -92,6 +97,7 @@ type Package struct {
 type Pricing struct {
 	PriceCategory string `xml:"price_category,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
+	SpecialPrice  string `xml:"SpecialPrice,omitempty"`
 }
 
 //GiftCertificate hold information about gift certificates
@@ -119,8 +125,8 @@ type Document struct {
 	Description   string `xml:"Description,omitempty"`
 }
 
-//Attribute holds product attribute information
-type Attribute struct {
+//Attributes holds product attribute information
+type Attributes struct {
 	Active string   `xml:"active,attr,omitempty"`
 	Values []string `xml:"Value,omitempty"`
 }
@@ -166,14 +172,14 @@ type SubProduct struct {
 	Name                 string             `xml:"Name,omitempty"`
 	Image                string             `xml:"Image,omitempty"`
 	Retail               Retail             `xml:"Retail,omitempty"`
-	WholeSale            WholeSale          `xml:"WholeSale,omitempty"`
+	Wholesale            Wholesale          `xml:"Wholesale,omitempty"`
 	Special              Special            `xml:"Special,omitempty"`
 	Weight               Weight             `xml:"Weight,omitempty"`
 	Shipping             Shipping           `xml:"Shipping,omitempty"`
 	GiftCertificate      GiftCertificate    `xml:"GiftCertificate,omitempty"`
 	Subscription         Subscription       `xml:"Subscription,omitempty"`
 	ElectronicDelivery   ElectronicDelivery `xml:"ElectronicDelivery,omitempty"`
-	Attribute            Attribute          `xml:"Attribute,omitempty"`
+	Attributes           Attributes         `xml:"Attributes,omitempty"`
 	InventoryControl     InventoryControl   `xml:"InventoryControl,omitempty"`
 }
 

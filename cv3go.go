@@ -230,7 +230,6 @@ func (self *Api) CatalogRequestConfirm(o string) {
 //using o as the data
 func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
-	fmt.Printf("Should we ignore inventory? %+v\n", t)
 	if t {
 		self.prodIgnore = true
 	}
@@ -342,7 +341,6 @@ func (self *Api) Execute() (n []byte) {
 		}
 	}
 	if self.Debug == true {
-		fmt.Println("this should be the response")
 		fmt.Printf(string(n))
 	}
 	if strings.Contains(string(n), "<error>") {
