@@ -6,23 +6,23 @@ import "encoding/xml"
 type C struct {
 	// XMLName xml.Name `xml:"CV3Data"`
 	CV3Data       RequestBody
-	Confirms      []Confirm     `xml:"confirm"`
-	OrderStatuses []OrderStatus `xml:"orders"`
-	Products      Products      `xml:"products"`
+	Confirms      []Confirm     `xml:"confirm" json:"confirm"`
+	OrderStatuses []OrderStatus `xml:"orders" json:"orders"`
+	Products      Products      `xml:"products" json:"products"`
 }
 
 // Products data sructure for Products
 type Products struct {
 	XMLName  xml.Name  `xml:"products"`
-	Products []Product `xml:"product,omitempty"`
+	Products []Product `xml:"product,omitempty" json:"products"`
 }
 
 //Product is the struct used when unmarshaling inventory items
 type Product struct {
 	XMLName          xml.Name         `xml:"product"`
-	Inactive         string           `xml:"inactive,attr"`
+	Inactive         string           `xml:"inactive,attr" json:"inactive,attr"`
 	New              string           `xml:"new,attr,omitempty"`
-	Sku              string           `xml:"SKU"`
+	Sku              string           `xml:"SKU" json:"SKU"`
 	ProdId           string           `xml:"ProdID,omitempty"`
 	Name             string           `xml:"Name,omitempty"`
 	UrlName          string           `xml:"URLName,omitempty"`
@@ -45,7 +45,7 @@ type InventoryControl struct {
 	InventoryControlExempt   string `xml:"inventory_control_exempt,attr,omitempty"`
 	InventoryStatus          string `xml:"Status,omitempty"`
 	InventoryOnHand          string `xml:"Inventory,omitempty"`
-	OnOrder                  string `xml:"OnOrder,omitempty"`
+	OnOrder                  int    `xml:"OnOrder,omitempty"`
 	InventoryBackorderedDate string `xml:"InventoryBackorderedDate,omitempty"`
 	OutOfStock               string `xml:"OutOfStockPoint,omitempty"`
 }

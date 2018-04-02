@@ -270,7 +270,7 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 //Note, one of the above requests must
 //be set up first, and the credentials must be
 //set up for this to work
-func (self *Api) Execute() (n []byte) {
+func (self *Api) Execute(jsonReturn ...bool) (n []byte) {
 	//  var pre_n []byte
 	w := Credentials{User: self.user, Password: self.pass, ServiceID: self.serviceID}
 	x := Request{Request: self.request}
@@ -284,7 +284,18 @@ func (self *Api) Execute() (n []byte) {
 		fmt.Println(err)
 	}
 	xmlstring := string(xmlbytes)
-	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	//Set return type to JSON if desired
+	var json = false
+	for _, jReturn := range jsonReturn {
+		if jReturn {
+			json = true
+		}
+	} //Check if a json return is desired
+	if json {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\" response_format=\"json\">", -1)
+	} else {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	}
 	if self.prodIgnore {
 		xmlstring = strings.Replace(xmlstring, "<products>", `<products ignore_new_products="true">`, -1)
 	}
