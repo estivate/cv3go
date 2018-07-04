@@ -23,13 +23,14 @@ type Products struct {
 type Product struct {
 	XMLName          xml.Name          `xml:"product"`
 	Inactive         string            `xml:"inactive,attr"`
+	OutOfSeason      string            `xml:"out_of_season,attr"`
 	Sku              string            `xml:"SKU"`
 	ProdId           string            `xml:"ProdID,omitempty"`
 	Name             string            `xml:"Name,omitempty"`
 	UrlName          string            `xml:"URLName,omitempty"`
 	Brand            string            `xml:"Brand,omitempty"`
 	Retail           Retail            `xml:"Retail,omitempty"`
-	WholeSale        WholeSale         `xml:"Wholesale,omitempty`
+	WholeSale        WholeSale         `xml:"Wholesale,omitempty"`
 	Special          Special           `xml:"Special,omitempty"`
 	Weight           Weight            `xml:"Weight,omitempty"`
 	Shipping         Shipping          `xml:"Shipping,omitempty"`
@@ -78,7 +79,7 @@ type Special struct {
 	Ongoing string `xml:"ongoing,attr,omitempty"`
 	Start   string `xml:"Start,omitempty"`
 	End     string `xml:"End,omitempty"`
-	Text    string `xml:"Text,omitempty"`
+	//	Text    string `xml:"Text,omitempty"` // error if bad HTML **** BUG
 }
 
 //Weight hold the information about the weight

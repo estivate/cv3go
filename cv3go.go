@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -182,7 +183,7 @@ func (self *Api) GetProductIds() ProductIDs {
 	p := ProductIDs{}
 	err := xml.Unmarshal(data, &p)
 	if err != nil {
-		fmt.Printf("can't get products: %v", err)
+		fmt.Printf("can't get product ids: %v", err)
 	}
 	return p
 }
@@ -253,10 +254,23 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 //UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	n = CheckUTF8(n)
+
+	// Bad HTML BUG -- we have to regex away the values in these nodes so we don't
+	// get an Unmarshal error. This means I'm throwing away all these nodes! We need
+	// to figure out how to accept invalid HTML imbedded in XML OR just switch to the
+	// JSON responses from CV3.
+	var iBit = regexp.MustCompile(`(?sU)<Text>.*</Text>`)
+	var iBit2 = regexp.MustCompile(`(?sU)<Meta>.*</Meta>`)
+	var iBit3 = regexp.MustCompile(`(?sU)<KitProducts>.*</KitProducts>`)
+	n = iBit.ReplaceAll(n, []byte(""))
+	n = iBit2.ReplaceAll(n, []byte(""))
+	n = iBit3.ReplaceAll(n, []byte(""))
 	cv3Data := C{}
 	err := xml.Unmarshal(n, &cv3Data)
 	if err != nil {
-		fmt.Printf("can't get products: %v", err)
+		fmt.Printf("can't get products: %v\n", err)
+		// write to file
+		_ = ioutil.WriteFile("./error.xml", n, 0644)
 	}
 	return cv3Data.Products
 }
