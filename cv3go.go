@@ -254,7 +254,11 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 //UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	n = CheckUTF8(n)
-	// regex away bad html
+
+	// Bad HTML BUG -- we have to regex away the values in these nodes so we don't
+	// get an Unmarshal error. This means I'm throwing away all these nodes! We need
+	// to figure out how to accept invalid HTML imbedded in XML OR just switch to the
+	// JSON responses from CV3.
 	var iBit = regexp.MustCompile(`(?sU)<Text>.*</Text>`)
 	var iBit2 = regexp.MustCompile(`(?sU)<Meta>.*</Meta>`)
 	var iBit3 = regexp.MustCompile(`(?sU)<KitProducts>.*</KitProducts>`)
