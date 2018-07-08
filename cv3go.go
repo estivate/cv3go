@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -114,6 +115,48 @@ type Api struct {
 func NewApi() *Api {
 	api := new(Api)
 	return api
+}
+
+func (c *Credentials) GetPendingOrdersWithProducts() (*Orders, error) {
+	orders, err := c.GetPendingOrders()
+	if err != nil {
+		return nil, err
+	}
+	// fill in the product names
+	for io, order := range orders.Orders {
+		log.Printf("Processing order %d", io)
+		for is, shipTo := range order.ShipTos {
+			for ip, shipToProduct := range shipTo.ShipToProducts {
+				api2 := NewApi()
+				api2.SetCredentials(c.User, c.Password, c.ServiceID)
+				api2.GetProductSKU(shipToProduct.SKU, false)
+				d := api2.Execute()
+				products := api2.UnmarshalInventory(d)
+				for _, product := range products.Products {
+					if product.Sku == shipToProduct.SKU {
+						orders.Orders[io].ShipTos[is].ShipToProducts[ip].Product = product
+					} else {
+						for _, subProduct := range product.SubProducts.SubProducts {
+							if subProduct.Sku == shipToProduct.SKU {
+								orders.Orders[io].ShipTos[is].ShipToProducts[ip].Product.Name = subProduct.Name
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return orders, nil
+}
+
+func (c *Credentials) GetPendingOrders() (*Orders, error) {
+	api := NewApi()
+	api.Debug = false
+	api.SetCredentials(c.User, c.Password, c.ServiceID)
+	api.GetOrdersNew()
+	data := api.Execute()
+	orders := api.UnmarshalOrders(data)
+	return &orders, nil
 }
 
 //SetCredentials Set the credentials of the API
