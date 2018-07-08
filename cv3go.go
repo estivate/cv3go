@@ -159,6 +159,23 @@ func (c *Credentials) GetPendingOrders() (*Orders, error) {
 	return &orders, nil
 }
 
+func (c *Credentials) RemoveOrdersFromPending(orders *Orders) error {
+
+	// get order ids
+	var orderIDs []string
+	for _, order := range orders.Orders {
+		orderIDs = append(orderIDs, order.OrderID)
+	}
+	// hit api
+	api := NewApi()
+	api.Debug = false
+	api.SetCredentials(c.User, c.Password, c.ServiceID)
+	api.OrderConfirm(orderIDs)
+	_ = api.Execute()
+
+	return nil
+}
+
 //SetCredentials Set the credentials of the API
 func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.user = username
@@ -260,8 +277,13 @@ func (self *Api) GetOrdersRange(o string, p string) {
 
 //OrderConfirm Set request to orderConfirm->orderConf
 //using string o as contents
-func (self *Api) OrderConfirm(o string) {
-	self.confirm = "  <orderConfirm><orderConf>" + o + "</orderConf></orderConfirm>"
+func (self *Api) OrderConfirm(o []string) {
+	temp := "<orderConfirm>"
+	for _, id := range o {
+		temp = temp + "<orderConf>" + id + "</orderConf>"
+	}
+	temp = temp + "</orderConfirm>"
+	self.confirm = temp
 }
 
 //UpdateOrderStatus Set request to status->[orderID(o),status(p),tracking(q)]
