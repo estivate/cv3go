@@ -80,3 +80,8 @@ func main() {
 ```
 
 You will probably want to create a config file to store the authentication data in, since the password gets rotated a good bit and you'll need to pop in and update it occassionally. The Go Text Template library is very useful for formatting the CV3 data for a 3rd party system or vice versus. I often find myself grabbing data from CV3, pushing it through a Go Template and then submitting it to another API.
+
+## History
+
+Version 1.0 ~ used in in projects prior to 2017.
+Version 1.1 ~ used in projects 2017 - 2018.
