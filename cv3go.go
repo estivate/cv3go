@@ -117,6 +117,24 @@ func NewApi() *Api {
 	return api
 }
 
+func (c *Credentials) SetProductStatus(products []OrdStatus) error {
+	api := NewApi()
+	api.Debug = false
+	api.SetCredentials(c.User, c.Password, c.ServiceID)
+	api.UpdateOrderStatus(products)
+	_ = api.Execute()
+	return nil
+}
+
+func (c *Credentials) UpdateOrderStatus(status []OrdStatus) error {
+	api := NewApi()
+	api.Debug = false
+	api.SetCredentials(c.User, c.Password, c.ServiceID)
+	api.UpdateOrderStatus(status)
+	_ = api.Execute()
+	return nil
+}
+
 func (c *Credentials) GetPendingOrdersWithProducts() (*Orders, error) {
 	orders, err := c.GetPendingOrders()
 	if err != nil {
@@ -183,6 +201,9 @@ func (self *Api) SetCredentials(username, password, serviceID string) {
 	self.serviceID = serviceID
 	self.prodIgnore = false
 }
+
+// (TEMP) -- everything below is old API and should be evaluated to either become
+// part of the new api above or go private (lower case).
 
 //GetCustomerGroups Set the request to reqCustomerInformation
 func (self *Api) GetCustomerGroups() {
@@ -287,8 +308,17 @@ func (self *Api) OrderConfirm(o []string) {
 }
 
 //UpdateOrderStatus Set request to status->[orderID(o),status(p),tracking(q)]
-func (self *Api) UpdateOrderStatus(o string, p string, q string) {
-	self.orderStatus = "  <status><orderID>" + o + "</orderID><status>" + p + "</status><tracking>" + q + "</tracking></status>"
+func (a *Api) UpdateOrderStatus(os []OrdStatus) {
+	a.orderStatus = ""
+	for _, status := range os {
+		if status.SendTrackingNotification {
+			a.orderStatus = a.orderStatus + "<status tracking_notification=\"true\">"
+		} else {
+			a.orderStatus = a.orderStatus + "<status>"
+		}
+		a.orderStatus = a.orderStatus + "<orderID>" + status.OrderID + "</orderID><status>" + status.Status + "</status><tracking>" + status.Tracking + "</tracking><custNum>" + status.CustomerNumber + "</custNum></status>"
+		a.orderStatus = a.orderStatus + "</status>"
+	}
 }
 
 //CatalogRequest Set request to catalogRequestConfirm->CatalogRequestID(o)
