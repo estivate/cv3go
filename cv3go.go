@@ -316,7 +316,7 @@ func (a *Api) UpdateOrderStatus(os []OrdStatus) {
 		} else {
 			a.orderStatus = a.orderStatus + "<status>"
 		}
-		a.orderStatus = a.orderStatus + "<orderID>" + status.OrderID + "</orderID><status>" + status.Status + "</status><tracking>" + status.Tracking + "</tracking><custNum>" + status.CustomerNumber + "</custNum></status>"
+		a.orderStatus = a.orderStatus + "<orderID>" + status.OrderID + "</orderID><status>" + status.Status + "</status><tracking>" + status.Tracking + "</tracking><custNum>" + status.CustomerNumber + "</custNum>"
 		a.orderStatus = a.orderStatus + "</status>"
 	}
 }
