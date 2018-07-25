@@ -117,11 +117,12 @@ func NewApi() *Api {
 	return api
 }
 
-func (c *Credentials) SetProductStatus(products []OrdStatus) error {
+func (c *Credentials) UpdateProducts(products []Product) error {
 	api := NewApi()
 	api.Debug = false
 	api.SetCredentials(c.User, c.Password, c.ServiceID)
-	api.UpdateOrderStatus(products)
+	submitProducts := Products{Products: products}
+	api.UpdateProducts(submitProducts, false)
 	_ = api.Execute()
 	return nil
 }
@@ -334,6 +335,36 @@ func (self *Api) PushInventory(o string, t bool) {
 	if t {
 		self.prodIgnore = true
 	}
+}
+
+//UpdateProducts sends any fields that need updating, fields
+// not sent remain current values, the second value notes if we
+// should ignore new products
+func (api *Api) UpdateProducts(products Products, t bool) {
+	productsXML, err := xml.Marshal(products)
+	if err != nil {
+		fmt.Printf("err: %v", err)
+	}
+	fmt.Printf("productsXML: %v", productsXML)
+	//  productXML := "<products>"
+	//  for _, product := range products {
+	//  productXML = productXML + "<product>"
+	//
+	//  // we should only proceed if we have a sku, otherwise we
+	//  // should ignore (maybe if we have a prodID?).
+	//  if product.Sku != "" {
+	//    productXML = productXML + "<sku>" + product.Sku + "</sku>"
+	//  }
+	//
+	//  // now we add values to the xml if we have them. This should
+	//  // be replace with a marshal statement?
+	//  productXML = productXML + "</product>"
+	//}
+	//  productXML = productXML + "</products>"
+	//	api.product = productXML
+	//	if t {
+	//		api.prodIgnore = true
+	//	}
 }
 
 //UnmarshalOrders Convert an XML response containing order to an Orders object
