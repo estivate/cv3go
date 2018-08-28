@@ -42,6 +42,7 @@ type Credentials struct {
 	User      string   `xml:"user"`
 	Password  string   `xml:"pass"`
 	ServiceID string   `xml:"serviceID"`
+	Debug     bool
 }
 
 //RequestBody struct
@@ -117,12 +118,15 @@ func NewApi() *Api {
 	return api
 }
 
-func (c *Credentials) UpdateProducts(products []Product) error {
+// UpdateProducts matches on sku and submits any updates to
+// the products to CV3. The first option sets whether new
+// products should be created if the sku doesn't exist
+func (c *Credentials) UpdateProducts(products []Product, createNew bool) error {
 	api := NewApi()
-	api.Debug = false
+	api.Debug = c.Debug
 	api.SetCredentials(c.User, c.Password, c.ServiceID)
-	submitProducts := Products{Products: products}
-	api.UpdateProducts(submitProducts, false)
+	//submitProducts := Products{Products: products}
+	api.UpdateProducts(products, createNew)
 	_ = api.Execute()
 	return nil
 }
@@ -340,31 +344,20 @@ func (self *Api) PushInventory(o string, t bool) {
 //UpdateProducts sends any fields that need updating, fields
 // not sent remain current values, the second value notes if we
 // should ignore new products
-func (api *Api) UpdateProducts(products Products, t bool) {
-	productsXML, err := xml.Marshal(products)
-	if err != nil {
-		fmt.Printf("err: %v", err)
+func (api *Api) UpdateProducts(products []Product, createNew bool) {
+	for _, product := range products {
+		productXML, err := xml.Marshal(product)
+		if err != nil {
+			fmt.Printf("err: %v", err)
+		}
+		// hack to accommodate old api execute
+
+		api.product = api.product + string(productXML)
 	}
-	fmt.Printf("productsXML: %v", productsXML)
-	//  productXML := "<products>"
-	//  for _, product := range products {
-	//  productXML = productXML + "<product>"
-	//
-	//  // we should only proceed if we have a sku, otherwise we
-	//  // should ignore (maybe if we have a prodID?).
-	//  if product.Sku != "" {
-	//    productXML = productXML + "<sku>" + product.Sku + "</sku>"
-	//  }
-	//
-	//  // now we add values to the xml if we have them. This should
-	//  // be replace with a marshal statement?
-	//  productXML = productXML + "</product>"
-	//}
-	//  productXML = productXML + "</products>"
-	//	api.product = productXML
-	//	if t {
-	//		api.prodIgnore = true
-	//	}
+	// we set ignore to true if we don't want to crate products
+	if createNew == false {
+		api.prodIgnore = true
+	}
 }
 
 //UnmarshalOrders Convert an XML response containing order to an Orders object
