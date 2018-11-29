@@ -57,7 +57,7 @@ type Order struct {
 	BillingEmail          string             `xml:"billing>email"`
 	BillingPhone          string             `xml:"billing>phone"`
 	BillingOptOut         string             `xml:"billing>optOut"`
-	BillingTransactionID  string             `xml:"billing>CCInfo>TransactionID"`
+	BillingTransactionID  string             `xml:"billing>CCInfo>transactionID"`
 	MemberID              string             `xml:"billing>memberID"`
 	CCType                string             `xml:"billing>CCInfo>CCType"`
 	CCName                string             `xml:"billing>CCInfo>CCName"`
