@@ -21,28 +21,28 @@ type Products struct {
 
 //Product is the struct used when unmarshaling inventory items
 type Product struct {
-	XMLName          xml.Name           `xml:"product"`
-	Inactive         string             `xml:"inactive,attr"`
-	OutOfSeason      string             `xml:"out_of_season,attr,omitempty"`
-	Sku              string             `xml:"SKU"`
-	ProdId           string             `xml:"ProdID,omitempty"`
-	Name             string             `xml:"Name,omitempty"`
-	UrlName          string             `xml:"URLName,omitempty"`
-	Brand            string             `xml:"Brand,omitempty"`
-	Retail           *Retail            `xml:"Retail,omitempty"`
-	WholeSale        *WholeSale         `xml:"Wholesale,omitempty"`
-	Special          *Special           `xml:"Special,omitempty"`
-	Weight           *Weight            `xml:"Weight,omitempty"`
-	Shipping         *Shipping          `xml:"Shipping,omitempty"`
-	InventoryControl *InventoryControl  `xml:"InventoryControl,omitempty"`
-	SubProducts      *SubProducts       `xml:"SubProducts,omitempty"`
-	Description      string             `xml:"Description,omitempty"`
-	Keywords         string             `xml:"Keywords,omitempty"`
-	Meta             *Meta              `xml:"Meta,omitempty"`
-	Images           *Images            `xml:"Images,omitempty"`
-	Categories       *ProdCategories    `xml:"Categories,omitempty"`
-	ProdCustomFields *[]ProdCustomField `xml:"Custom,omitempty"`
-	ParentSKU        string             `xml:"ParentSKU,omitempty"`
+	XMLName          xml.Name          `xml:"product"`
+	Inactive         string            `xml:"inactive,attr"`
+	OutOfSeason      string            `xml:"out_of_season,attr,omitempty"`
+	Sku              string            `xml:"SKU"`
+	ProdId           string            `xml:"ProdID,omitempty"`
+	Name             string            `xml:"Name,omitempty"`
+	UrlName          string            `xml:"URLName,omitempty"`
+	Brand            string            `xml:"Brand,omitempty"`
+	Retail           *Retail           `xml:"Retail,omitempty"`
+	WholeSale        *WholeSale        `xml:"Wholesale,omitempty"`
+	Special          *Special          `xml:"Special,omitempty"`
+	Weight           *Weight           `xml:"Weight,omitempty"`
+	Shipping         *Shipping         `xml:"Shipping,omitempty"`
+	InventoryControl *InventoryControl `xml:"InventoryControl,omitempty"`
+	SubProducts      *SubProducts      `xml:"SubProducts,omitempty"`
+	Description      string            `xml:"Description,omitempty"`
+	Keywords         string            `xml:"Keywords,omitempty"`
+	Meta             *Meta             `xml:"Meta,omitempty"`
+	Images           *Images           `xml:"Images,omitempty"`
+	Categories       *ProdCategories   `xml:"Categories,omitempty"`
+	ProdCustomFields []ProdCustomField `xml:"Custom,omitempty"`
+	ParentSKU        string            `xml:"ParentSKU,omitempty"`
 }
 
 // CustomFields struct for marshalling and unmarshalling cv3's xml nodes of Custom Fields
@@ -63,8 +63,8 @@ type InventoryControl struct {
 
 //Retail is the struct for marshalling and unmarshalling cv3's retail node
 type Retail struct {
-	Active string  `xml:"active,attr,omitempty"`
-	Price  Pricing `xml:"Price,omitempty"`
+	Active string    `xml:"active,attr,omitempty"`
+	Price  []Pricing `xml:"Price,omitempty"`
 }
 
 //WholeSale hold pricing info for a wholesale item
