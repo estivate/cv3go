@@ -489,5 +489,5 @@ func (self *Api) AddRequestFromStruct(req interface{}) {
 	if err != nil {
 		fmt.Println("Error marshalling struct in AddRequestFromStruct: ", err)
 	}
-	self.request = string(r) //`<reqPricing>` + string(r) + `</reqPricing>`
+	self.request = string(r)
 }
