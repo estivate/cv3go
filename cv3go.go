@@ -207,6 +207,18 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
+//ConfirmCatalogRequest will set the catalog requests to confrimed OrderStatus
+func (self *Api) ConfirmCatalogRequest(catIDs []string) {
+	var confirmCats = ConfirmCatalogRequest{}
+	confirmCats.CatalogRequestID = catIDs
+	b, err := xml.MarshalIndent(&confirmCats, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshalling confirm catalog requests: ", err)
+	}
+	self.confirm = string(b)
+
+}
+
 //GetOrdersNew Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
