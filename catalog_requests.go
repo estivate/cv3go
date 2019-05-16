@@ -1,5 +1,7 @@
 package cv3go
 
+import "encoding/xml"
+
 type CatalogRequests struct {
 	CatalogRequests []CatalogRequest `xml:"catalogRequests>CatalogRequest"`
 }
@@ -20,4 +22,10 @@ type CatalogRequest struct {
 	State         string `xml:"CustomerInformation>Address>State"`
 	PostalCode    string `xml:"CustomerInformation>Address>PostalCode"`
 	Country       string `xml:"CustomerInformation>Address>Country"`
+}
+
+//ConfirmCatalogRequest is the struct to send the confirm catalog database
+type ConfirmCatalogRequest struct {
+	XMLName          xml.Name `xml:"catalogRequestConfirm"`
+	CatalogRequestID []string `xml:"CatalogRequestID"`
 }

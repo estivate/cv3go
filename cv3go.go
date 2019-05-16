@@ -79,6 +79,7 @@ type CV3Data struct {
 	Confirms      []Confirm     `xml:"confirm"`
 	OrderStatuses []OrderStatus `xml:"orders"`
 	Products      []ProductCall `xml:"products"`
+	Pricing       PricingCall   `xml:"pricing"`
 }
 
 type response struct {
@@ -99,6 +100,11 @@ func toBase64(data string) string {
 	return buf.String()
 }
 
+//Pricing will hold pricing import reqCustomerInformation
+type PricingCall struct {
+	Pricing string `xml:",innerxml"`
+}
+
 //Api is the struct to send api calls
 type Api struct {
 	Debug       bool
@@ -110,6 +116,7 @@ type Api struct {
 	product     string
 	prodIgnore  bool
 	orderStatus string
+	pricing     string
 }
 
 //NewApi Generate a new API
@@ -291,6 +298,18 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
+//ConfirmCatalogRequest will set the catalog requests to confrimed OrderStatus
+func (self *Api) ConfirmCatalogRequest(catIDs []string) {
+	var confirmCats = ConfirmCatalogRequest{}
+	confirmCats.CatalogRequestID = catIDs
+	b, err := xml.MarshalIndent(&confirmCats, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshalling confirm catalog requests: ", err)
+	}
+	self.confirm = string(b)
+
+}
+
 //GetOrdersNew Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
@@ -335,7 +354,6 @@ func (self *Api) CatalogRequestConfirm(o string) {
 //using o as the data
 func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
-	fmt.Printf("Should we ignore inventory? %+v\n", t)
 	if t {
 		self.prodIgnore = true
 	}
@@ -408,27 +426,39 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 //Note, one of the above requests must
 //be set up first, and the credentials must be
 //set up for this to work
-func (self *Api) Execute() (n []byte) {
+func (self *Api) Execute(jsonReturn ...bool) (n []byte) {
 	//  var pre_n []byte
 	w := Credentials{User: self.user, Password: self.pass, ServiceID: self.serviceID}
 	x := Request{Request: self.request}
 	y := Confirm{Confirm: self.confirm}
 	o := OrderStatus{OrderStatus: self.orderStatus}
 	z := ProductCall{ProductCall: self.product}
+	p := PricingCall{Pricing: self.pricing}
 	t := RequestBody{Auth: w, Requests: []Request{x}}
-	v := CV3Data{CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
+	v := CV3Data{Pricing: p, CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
 	xmlbytes, err := xml.MarshalIndent(v, "  ", "    ")
 	if err != nil {
 		fmt.Println(err)
 	}
 	xmlstring := string(xmlbytes)
-	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	//Set return type to JSON if desired
+	var json = false
+	for _, jReturn := range jsonReturn {
+		if jReturn {
+			json = true
+		}
+	} //Check if a json return is desired
+	if json {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\" response_format=\"json\">", -1)
+	} else {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	}
 	if self.prodIgnore {
 		xmlstring = strings.Replace(xmlstring, "<products>", `<products ignore_new_products="true">`, -1)
 	}
 	if self.Debug == true {
-		fmt.Printf("Printing request string: ")
-		fmt.Printf(xmlstring)
+		fmt.Println("Printing request string: ")
+		fmt.Println(xmlstring)
 	}
 	encodedString := toBase64(xmlstring)
 	xmlstring = xml.Header + fmt.Sprintf(soapEnvelope, encodedString)
@@ -479,7 +509,6 @@ func (self *Api) Execute() (n []byte) {
 		}
 	}
 	if self.Debug == true {
-		fmt.Println("this should be the response")
 		fmt.Printf(string(n))
 	}
 	if strings.Contains(string(n), "<error>") {
@@ -592,4 +621,22 @@ func PrintToFile(b []byte, fileName string) {
 	}
 	fi.Write(b)
 	fi.Close()
+}
+
+//AddPricingFromStruct marshals a passed in struct and adds it to the pricing fields
+func (self *Api) AddPricingFromStruct(p interface{}) {
+	r, err := xml.Marshal(&p)
+	if err != nil {
+		fmt.Println("Error marshalling struct in AddPricingFromStruct: ", err)
+	}
+	self.pricing = string(r)
+}
+
+//AddRequestFromStruct marshals a passed in struct and adds it to the request fields
+func (self *Api) AddRequestFromStruct(req interface{}) {
+	r, err := xml.Marshal(&req)
+	if err != nil {
+		fmt.Println("Error marshalling struct in AddRequestFromStruct: ", err)
+	}
+	self.request = string(r)
 }

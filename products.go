@@ -6,15 +6,15 @@ import "encoding/xml"
 type C struct {
 	// XMLName xml.Name `xml:"CV3Data"`
 	CV3Data       RequestBody
-	Confirms      []Confirm     `xml:"confirm"`
-	OrderStatuses []OrderStatus `xml:"orders"`
-	Products      Products      `xml:"products"`
+	Confirms      []Confirm     `xml:"confirm" json:"confirm"`
+	OrderStatuses []OrderStatus `xml:"orders" json:"orders"`
+	Products      Products      `xml:"products" json:"products"`
 }
 
 // Products data sructure for Products
 type Products struct {
 	XMLName  xml.Name  `xml:"products"`
-	Products []Product `xml:"product,omitempty"`
+	Products []Product `xml:"product,omitempty" json:"products"`
 }
 
 //type Products []Product
@@ -22,32 +22,36 @@ type Products struct {
 //Product is the struct used when unmarshaling inventory items
 type Product struct {
 	XMLName          xml.Name          `xml:"product"`
-	Inactive         string            `xml:"inactive,attr"`
+	Inactive         string            `xml:"inactive,attr" json:"inactive,attr"`
+	New              string            `xml:"new,attr,omitempty"`
 	OutOfSeason      string            `xml:"out_of_season,attr,omitempty"`
-	Sku              string            `xml:"SKU"`
-	ProdId           string            `xml:"ProdID,omitempty"`
+	Sku              string            `xml:"SKU" json:"SKU"`
+	ProdID           string            `xml:"ProdID,omitempty"`
 	Name             string            `xml:"Name,omitempty"`
-	UrlName          string            `xml:"URLName,omitempty"`
-	Brand            string            `xml:"Brand,omitempty"`
-	Retail           *Retail           `xml:"Retail,omitempty"`
-	WholeSale        *WholeSale        `xml:"Wholesale,omitempty"`
-	Special          *Special          `xml:"Special,omitempty"`
-	Weight           *Weight           `xml:"Weight,omitempty"`
-	Shipping         *Shipping         `xml:"Shipping,omitempty"`
-	InventoryControl *InventoryControl `xml:"InventoryControl,omitempty"`
-	SubProducts      *SubProducts      `xml:"SubProducts,omitempty"`
+	URLName          string            `xml:"URLName,omitempty"`
+	InventoryControl InventoryControl  `xml:"InventoryControl,omitempty"`
+	Retail           Retail            `xml:"Retail,omitempty"`
+	Wholesale        Wholesale         `xml:"Wholesale,omitempty"`
+	SubProducts      SubProducts       `xml:"SubProducts,omitempty"`
 	Description      string            `xml:"Description,omitempty"`
 	Keywords         string            `xml:"Keywords,omitempty"`
-	Meta             *Meta             `xml:"Meta,omitempty"`
-	Images           *Images           `xml:"Images,omitempty"`
-	Categories       *ProdCategories   `xml:"Categories,omitempty"`
+	Meta             Meta              `xml:"Meta,omitempty"`
+	Images           Images            `xml:"Images,omitempty"`
+	Categories       ProdCategories    `xml:"Categories,omitempty"`
+	DefaultCategory  string            `xml:"DefaultCategory,omitempty"`
+	Attributes       Attributes        `xml:"Attributes,omitempty"`
+	Rating           string            `xml:"Rating,omitempty"`
+	Brand            string            `xml:"Brand,omitempty"`
+	Special          Special           `xml:"Special,omitempty"`
+	Weight           Weight            `xml:"Weight,omitempty"`
+	Shipping         Shipping          `xml:"Shipping,omitempty"`
 	ProdCustomFields []ProdCustomField `xml:"Custom,omitempty"`
 	ParentSKU        string            `xml:"ParentSKU,omitempty"`
 }
 
-// CustomFields struct for marshalling and unmarshalling cv3's xml nodes of Custom Fields
+// ProdCustomField struct for marshalling and unmarshalling cv3's xml nodes of Custom Fields
 type ProdCustomField struct {
-	Id    string `xml:"id,attr"`
+	ID    string `xml:"id,attr"`
 	Value string `xml:",cdata"`
 }
 
@@ -56,7 +60,7 @@ type InventoryControl struct {
 	InventoryControlExempt   string `xml:"inventory_control_exempt,attr,omitempty"`
 	InventoryStatus          string `xml:"Status,omitempty"`
 	InventoryOnHand          string `xml:"Inventory,omitempty"`
-	OnOrder                  string `xml:"OnOrder,omitempty"`
+	OnOrder                  int    `xml:"OnOrder,omitempty"`
 	InventoryBackorderedDate string `xml:"InventoryBackorderedDate,omitempty"`
 	OutOfStock               string `xml:"OutOfStockPoint,omitempty"`
 }
@@ -67,8 +71,8 @@ type Retail struct {
 	Price  []Pricing `xml:"Price,omitempty"`
 }
 
-//WholeSale hold pricing info for a wholesale item
-type WholeSale struct {
+//Wholesale hold pricing info for a Wholesale item
+type Wholesale struct {
 	Active        string `xml:"active,attr,omitempty"`
 	StandardPrice string `xml:"StandardPrice,omitempty"`
 	Qty           string `xml:"Qty,omitempty"`
@@ -136,8 +140,8 @@ type Document struct {
 	Description   string `xml:"Description,omitempty"`
 }
 
-//Attribute holds product attribute information
-type Attribute struct {
+//Attributes holds product attribute information
+type Attributes struct {
 	Active string   `xml:"active,attr,omitempty"`
 	Values []string `xml:"Value,omitempty"`
 }
@@ -182,18 +186,18 @@ type SubProduct struct {
 	GoogleCheckoutExempt string             `xml:"google_checkout_exempt,attr,omitempty"`
 	Sku                  string             `xml:"SKU,omitempty"`
 	AltID                string             `xml:"AltID,omitempty"`
-	ProdId               string             `xml:"ProdID,omitempty"`
+	ProdID               string             `xml:"ProdID,omitempty"`
 	Name                 string             `xml:"Name,omitempty"`
 	Image                string             `xml:"Image,omitempty"`
 	Retail               Retail             `xml:"Retail,omitempty"`
-	WholeSale            WholeSale          `xml:"WholeSale,omitempty"`
+	Wholesale            Wholesale          `xml:"Wholesale,omitempty"`
 	Special              Special            `xml:"Special,omitempty"`
 	Weight               Weight             `xml:"Weight,omitempty"`
 	Shipping             Shipping           `xml:"Shipping,omitempty"`
 	GiftCertificate      GiftCertificate    `xml:"GiftCertificate,omitempty"`
 	Subscription         Subscription       `xml:"Subscription,omitempty"`
 	ElectronicDelivery   ElectronicDelivery `xml:"ElectronicDelivery,omitempty"`
-	Attribute            Attribute          `xml:"Attribute,omitempty"`
+	Attributes           Attributes         `xml:"Attributes,omitempty"`
 	InventoryControl     InventoryControl   `xml:"InventoryControl,omitempty"`
 }
 
