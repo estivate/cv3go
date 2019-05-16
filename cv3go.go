@@ -23,6 +23,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -74,6 +76,7 @@ type CV3Data struct {
 	Confirms      []Confirm     `xml:"confirm"`
 	OrderStatuses []OrderStatus `xml:"orders"`
 	Products      []ProductCall `xml:"products"`
+	Pricing       PricingCall   `xml:"pricing"`
 }
 
 type response struct {
@@ -94,6 +97,11 @@ func toBase64(data string) string {
 	return buf.String()
 }
 
+//Pricing will hold pricing import reqCustomerInformation
+type PricingCall struct {
+	Pricing string `xml:",innerxml"`
+}
+
 //Api is the struct to send api calls
 type Api struct {
 	Debug       bool
@@ -105,6 +113,7 @@ type Api struct {
 	product     string
 	prodIgnore  bool
 	orderStatus string
+	pricing     string
 }
 
 //NewApi Generate a new API
@@ -158,10 +167,15 @@ func (self *Api) GetProductSKUs(o []string, t bool) {
 	self.request = req
 }
 
+//GetProductSingleBySKU is from Ben, to get a singlee product by sku
+func (self *Api) GetProductSingleBySKU(o string) {
+	self.request = "<reqProducts><reqProductSKU>" + o + "</reqProductSKU></reqProducts>"
+}
+
 //GetProductRange Set the request to reqProducts->reqProductRange
 //using start and end to dictate the range
 func (self *Api) GetProductRange(start string, end string) {
-	self.request = "<reqProducts><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
+	self.request = "<reqProducts ignore_inactive='true' ><reqProductRange start=\"" + start + "\" end =\"" + end + "\" /></reqProducts>"
 }
 
 //GetProductIds Set the request to reqProductIDs
@@ -193,6 +207,18 @@ func (self *Api) GetCatalogRequestsNew() CatalogRequests {
 	return catalogs
 }
 
+//ConfirmCatalogRequest will set the catalog requests to confrimed OrderStatus
+func (self *Api) ConfirmCatalogRequest(catIDs []string) {
+	var confirmCats = ConfirmCatalogRequest{}
+	confirmCats.CatalogRequestID = catIDs
+	b, err := xml.MarshalIndent(&confirmCats, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshalling confirm catalog requests: ", err)
+	}
+	self.confirm = string(b)
+
+}
+
 //GetOrdersNew Set the request to reqOrders->reqOrderNew
 func (self *Api) GetOrdersNew() {
 	self.request = "<reqOrders><reqOrderNew/></reqOrders>"
@@ -200,7 +226,7 @@ func (self *Api) GetOrdersNew() {
 
 //GetOrdersRange Set the request to reqOrders->reqOrderOutOfStockPointRange from o to p
 func (self *Api) GetOrdersRange(o string, p string) {
-	self.request = "<reqOrders><reqOrderOutOfStockPointRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
+	self.request = "<reqOrders><reqOrderRange start=\"" + o + "\" end=\"" + p + "\" /></reqOrders>"
 }
 
 //OrderConfirm Set request to orderConfirm->orderConf
@@ -223,7 +249,6 @@ func (self *Api) CatalogRequestConfirm(o string) {
 //using o as the data
 func (self *Api) PushInventory(o string, t bool) {
 	self.product = o
-	fmt.Printf("Should we ignore inventory? %+v\n", t)
 	if t {
 		self.prodIgnore = true
 	}
@@ -242,12 +267,12 @@ func (self *Api) UnmarshalOrders(n []byte) Orders {
 //UnmarshalInventory Convert an XML response containing Inventory to a Products object
 func (self *Api) UnmarshalInventory(n []byte) Products {
 	n = CheckUTF8(n)
-	products := Products{}
-	err := xml.Unmarshal(n, &products)
+	cv3Data := C{}
+	err := xml.Unmarshal(n, &cv3Data)
 	if err != nil {
 		fmt.Printf("can't get products: %v", err)
 	}
-	return products
+	return cv3Data.Products
 }
 
 //UnmarshalProduct Convert an XML response containing a single product to a Product object
@@ -264,27 +289,39 @@ func (self *Api) UnmarshalProduct(n []byte) Product {
 //Note, one of the above requests must
 //be set up first, and the credentials must be
 //set up for this to work
-func (self *Api) Execute() (n []byte) {
+func (self *Api) Execute(jsonReturn ...bool) (n []byte) {
 	//  var pre_n []byte
 	w := Credentials{User: self.user, Password: self.pass, ServiceID: self.serviceID}
 	x := Request{Request: self.request}
 	y := Confirm{Confirm: self.confirm}
 	o := OrderStatus{OrderStatus: self.orderStatus}
 	z := ProductCall{ProductCall: self.product}
+	p := PricingCall{Pricing: self.pricing}
 	t := RequestBody{Auth: w, Requests: []Request{x}}
-	v := CV3Data{CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
+	v := CV3Data{Pricing: p, CV3Data: t, Products: []ProductCall{z}, Confirms: []Confirm{y}, OrderStatuses: []OrderStatus{o}}
 	xmlbytes, err := xml.MarshalIndent(v, "  ", "    ")
 	if err != nil {
 		fmt.Println(err)
 	}
 	xmlstring := string(xmlbytes)
-	xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	//Set return type to JSON if desired
+	var json = false
+	for _, jReturn := range jsonReturn {
+		if jReturn {
+			json = true
+		}
+	} //Check if a json return is desired
+	if json {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\" response_format=\"json\">", -1)
+	} else {
+		xmlstring = strings.Replace(xmlstring, "<CV3Data>", "<CV3Data version=\"2.0\">", -1)
+	}
 	if self.prodIgnore {
 		xmlstring = strings.Replace(xmlstring, "<products>", `<products ignore_new_products="true">`, -1)
 	}
 	if self.Debug == true {
-		fmt.Printf("Printing request string: ")
-		fmt.Printf(xmlstring)
+		fmt.Println("Printing request string: ")
+		fmt.Println(xmlstring)
 	}
 	encodedString := toBase64(xmlstring)
 	xmlstring = xml.Header + fmt.Sprintf(soapEnvelope, encodedString)
@@ -320,6 +357,7 @@ func (self *Api) Execute() (n []byte) {
 				y := response{}
 				err = xml.Unmarshal([]byte(res), &y)
 				if err != nil {
+					fmt.Println(res)
 					fmt.Printf("Unmarshal error: %v", err)
 					os.Exit(1)
 					return
@@ -352,4 +390,116 @@ func CheckUTF8(b []byte) []byte {
 		return []byte(string(bytes.Runes(b)))
 	} // else b is valid utf8
 	return b
+}
+
+//GetAllCategories uses reqCategoryRange with no end set
+func (self *Api) GetAllCategories(isTopLevel bool) {
+	var buf = bytes.NewBufferString(`<reqCategories`)
+	if isTopLevel {
+		buf.WriteString(` top_level_only="true">`)
+	} else { //if not topLevel
+		buf.WriteString(`>`)
+	}
+	buf.WriteString(`<reqCategoryRange  start="0"/>
+	</reqCategories>`)
+	self.request = buf.String()
+}
+
+//GetAllCategoriesExcept uses reqCategoryRange with a passed in slice of ids to skip
+func (self *Api) GetAllCategoriesExcept(exceptIDs []string) {
+	var exInts = StringToIntSlice(exceptIDs) //get a sorted slice of ints from the category ids to skip
+	var skipCount = 0                        //for keeping track of ids that need to be skipped when the next id also needs to be skipped
+	//start the xml
+	var buf = bytes.NewBufferString(`<reqCategories >
+		`)
+	//skip all the passed in category ids
+	for i := range exceptIDs {
+		if i == 0 { //start at 0
+			buf.WriteString(`<reqCategoryRange  start="0" `)
+			buf.WriteString(`end="`)
+			//end right before the category id
+			buf.WriteString(strconv.Itoa(exInts[i] - 1))
+			buf.WriteString(`"/>
+				`)
+			//else if the current category id, is the last id in the slice
+		} else if i == len(exInts)-1 {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i] + 1))
+			buf.WriteString(`"/>
+				</reqCategories>`)
+			//check if the next id is NOT 1 + the current id
+		} else if exInts[i]+1 != exInts[i+1] { //&& exInts[i]-1 != exInts[i-1] {
+			buf.WriteString(`<reqCategoryRange  start="`)
+			//start right after the last id
+			buf.WriteString(strconv.Itoa(exInts[i-1-skipCount] + 1))
+			buf.WriteString(`" `)
+			buf.WriteString(`end="`)
+			//end right before the current id
+			buf.WriteString(strconv.Itoa(exInts[i-skipCount] - 1))
+			buf.WriteString(`"/>
+				`)
+			skipCount = 0 //set to zero, as this was not skipped
+			//else if its the last category id to skip
+		} else {
+			//keep track of how many consecutive indexes are skipped
+			skipCount++
+		}
+	}
+	self.request = buf.String()
+}
+
+//StringToIntSlice converts a slice of strings into a sorted slice of inherits
+//used in GetAllCategoriesExcept()
+func StringToIntSlice(strs []string) []int {
+	var ints = make([]int, len(strs))
+	for i, s := range strs {
+		n, err := strconv.Atoi(s)
+		if err != nil {
+			fmt.Println("error converting string to int: ", err)
+		} else {
+			ints[i] = n
+		}
+	}
+	sort.Ints(ints)
+	return ints
+}
+
+//UnmarshalCategories
+func (self *Api) UnmarshalCategories(n []byte) Categories {
+	//n = CheckUTF8(n)
+	categories := Categories{}
+	err := xml.Unmarshal(n, &categories)
+	if err != nil {
+		fmt.Printf("can't get categories: %v", err)
+	}
+	return categories
+}
+
+//PrintToFile will print the passed in []bytes to a file
+func PrintToFile(b []byte, fileName string) {
+	fi, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	fi.Write(b)
+	fi.Close()
+}
+
+//AddPricingFromStruct marshals a passed in struct and adds it to the pricing fields
+func (self *Api) AddPricingFromStruct(p interface{}) {
+	r, err := xml.Marshal(&p)
+	if err != nil {
+		fmt.Println("Error marshalling struct in AddPricingFromStruct: ", err)
+	}
+	self.pricing = string(r)
+}
+
+//AddRequestFromStruct marshals a passed in struct and adds it to the request fields
+func (self *Api) AddRequestFromStruct(req interface{}) {
+	r, err := xml.Marshal(&req)
+	if err != nil {
+		fmt.Println("Error marshalling struct in AddRequestFromStruct: ", err)
+	}
+	self.request = string(r)
 }
