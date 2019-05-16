@@ -31,51 +31,69 @@ type ShipTo struct {
 	ShipEmail      string          `xml:"shipEmail"`
 }
 type Order struct {
-	SubTotal              string
-	OrderID               string             `xml:"orderID"`
-	PriceCategory         string             `xml:"priceCategory"`
-	TotalPrice            string             `xml:"totalPrice"`
-	TotalShipping         string             `xml:"totalShipping"`
-	TotalTax              string             `xml:"totalTax"`
-	DateOrdered           string             `xml:"dateOrdered"`
-	TimeOrdered           string             `xml:"timeOrdered"`
-	PayMethod             string             `xml:"payMethod"`
-	SourceCode            string             `xml:"sourceCode"`
-	PromoCode             string             `xml:"promoCode"`
-	Comments              string             `xml:"comments"`
-	IP                    string             `xml:"IP"`
-	BillingCompany        string             `xml:"billing>company"`
-	BillingFirstName      string             `xml:"billing>firstName"`
-	BillingLastName       string             `xml:"billing>lastName"`
-	BillingTitle          string             `xml:"billing>title"`
-	BillingAddress        string             `xml:"billing>address1"`
-	BillingAddress2       string             `xml:"billing>address2"`
-	BillingCity           string             `xml:"billing>city"`
-	BillingState          string             `xml:"billing>state"`
-	BillingZip            string             `xml:"billing>zip"`
-	BillingCountry        string             `xml:"billing>country"`
-	BillingEmail          string             `xml:"billing>email"`
-	BillingPhone          string             `xml:"billing>phone"`
-	BillingOptOut         string             `xml:"billing>optOut"`
-	BillingTransactionID  string             `xml:"billing>CCInfo>transactionID"`
-	MemberID              string             `xml:"billing>memberID"`
-	CCType                string             `xml:"billing>CCInfo>CCType"`
-	CCName                string             `xml:"billing>CCInfo>CCName"`
-	CCNum                 string             `xml:"billing>CCInfo>CCNum"`
-	CCExpM                string             `xml:"billing>CCInfo>CCExpM"`
-	CCExpY                string             `xml:"billing>CCInfo>CCExpY"`
-	AuthCode              string             `xml:"billing>CCInfo>authCode"`
-	AuthAmount            string             `xml:"billing>CCInfo>authAmount"`
-	RequestToken          string             `xml:"billing>CCInfo>token"`
-	PurchaseOrder         string             `xml:"purchaseOrder"`
-	PayPalBuyer           string             `xml:"payPalInfo>Buyer"`
-	PayPalAmount          string             `xml:"payPalInfo>Amount"`
-	PayPalTransactionID   string             `xml:"payPalInfo>TransactionID"`
-	ShipTos               []ShipTo           `xml:"shipTos>shipTo"`
-	CustomFields          []CustomField      `xml:"customFields>customField"`
-	TotalOrderDiscount    TotalOrderDiscount `xml:"totalOrderDiscount"`
-	GiftCardPayments      []GiftCardPayment  `xml:"billing>GCInfo>giftCertificateUsed"`
-	GiftCardPaymentsTotal string             `xml:"billing>GCInfo>totalAmountUsed"`
+	SubTotal            string
+	OrderID             string `xml:"orderID"`
+	PriceCategory       string `xml:"priceCategory"`
+	TotalPrice          string `xml:"totalPrice"`
+	TotalShipping       string `xml:"totalShipping"`
+	TotalTax            string `xml:"totalTax"`
+	DateOrdered         string `xml:"dateOrdered"`
+	TimeOrdered         string `xml:"timeOrdered"`
+	PayMethod           string `xml:"payMethod"`
+	AdditionalPayMethod string `xml:"additionalPayMethod"`
+	SourceCode          string `xml:"sourceCode"`
+	PromoCode           string `xml:"promoCode"`
+	Comments            string `xml:"comments"`
+	IP                  string `xml:"IP"`
+	BillingCompany      string `xml:"billing>company"`
+	BillingFirstName    string `xml:"billing>firstName"`
+	BillingLastName     string `xml:"billing>lastName"`
+	BillingTitle        string `xml:"billing>title"`
+	BillingAddress      string `xml:"billing>address1"`
+	BillingAddress2     string `xml:"billing>address2"`
+	BillingCity         string `xml:"billing>city"`
+	BillingState        string `xml:"billing>state"`
+	BillingZip          string `xml:"billing>zip"`
+	BillingCountry      string `xml:"billing>country"`
+	BillingEmail        string `xml:"billing>email"`
+	BillingPhone        string `xml:"billing>phone"`
+	BillingOptOut       string `xml:"billing>optOut"`
+	MemberID            string `xml:"billing>memberID"`
+	//CC
+	CCType          string `xml:"billing>CCInfo>CCType"`
+	CCName          string `xml:"billing>CCInfo>CCName"`
+	CCNum           string `xml:"billing>CCInfo>CCNum"`
+	CCExpM          string `xml:"billing>CCInfo>CCExpM"`
+	CCExpY          string `xml:"billing>CCInfo>CCExpY"`
+	AuthCode        string `xml:"billing>CCInfo>authCode"`
+	AuthAmount      string `xml:"billing>CCInfo>authAmount"`
+	RequestToken    string `xml:"billing>CCInfo>token"`
+	CCTransactionID string `xml:"billing>CCInfo>transactionID"`
+	//GC
+	GiftCertificate   string `xml:"billing>GCInfo>giftCertificate"`
+	GCTotalAmountUsed string `xml:"billing>GCInfo>totalAmountUsed"`
+	GCAmountUsed      string `xml:"billing>GCInfo>amountUsed"`
+	//EC
+	ECAccountName       string             `xml:"billing>ECInfo>accountName"`
+	ECRoutingNumber     string             `xml:"billing>ECInfo>routingNumber"`
+	ECAccountNumber     string             `xml:"billing>ECInfo>accountNumber"`
+	ECBankName          string             `xml:"billing>ECInfo>bankName"`
+	PurchaseOrder       string             `xml:"purchaseOrder"`
+	PayPalBuyer         string             `xml:"payPalInfo>Buyer"`
+	PayPalAmount        string             `xml:"payPalInfo>Amount"`
+	PayPalTransactionID string             `xml:"payPalInfo>TransactionID"`
+	ShipTos             []ShipTo           `xml:"shipTos>shipTo"`
+	CustomFields        []CustomField      `xml:"customFields>customField"`
+	TotalOrderDiscount  TotalOrderDiscount `xml:"totalOrderDiscount"`
+	GiftCardPayments    []GiftCardPayment  `xml:"billing>GCInfo>giftCertificateUsed"`
+	AmazonOrderIDs      string             `xml:"amazonOrderIDsz"`
+	VisaCheckoutInfo    VisaCheckoutInfo   `xml:"visaCheckoutInfo"`
+}
+
+//VisaCheckoutInfo holds the visa checkout info in the order
+type VisaCheckoutInfo struct {
+	Amount        string `xml:"Amount"`
+	TransactionID string `xml:"TransactionID"`
 }
 
 type GiftCardPayment struct {
