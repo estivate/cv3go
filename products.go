@@ -76,9 +76,10 @@ type WholeSale struct {
 
 //Special hold the pricing information for a special sale
 type Special struct {
-	Ongoing string `xml:"ongoing,attr,omitempty"`
-	Start   string `xml:"Start,omitempty"`
-	End     string `xml:"End,omitempty"`
+	Ongoing   string `xml:"ongoing,attr,omitempty"`
+	AllowFree string `xml:"allow_free,attr,omitempty"`
+	Start     string `xml:"Start,omitempty"`
+	End       string `xml:"End,omitempty"`
 	//	Text    string `xml:"Text,omitempty"` // error if bad HTML **** BUG
 }
 
